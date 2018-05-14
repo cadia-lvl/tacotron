@@ -6,6 +6,10 @@ from hparams import hparams
 
 def preprocess_ljspeech(args):
     '''
+        Create the training directory that contains:
+        * Linear scaled spectrograms for all files in the dataset
+        * Mel scaled spectrograms for all files in the dataset
+        * The metadata for this dataset
     '''
     os.makedirs(args.output_dir, exist_ok=True)
     metadata = lj_speech.load_data(args.output_dir)
@@ -13,6 +17,11 @@ def preprocess_ljspeech(args):
 
 
 def write_metadata(metadata, output_dir):
+    '''
+        Writes dataset metadata to train.txt that contains 
+        the following information for all files:
+        "{lin spec file name} | {mel spec file name} | {num frames} | {text}"
+    '''
     with open(os.path.join(output_dir, 'train.txt'), 'w', encoding='utf-8') as f:
         for m in metadata:
             f.write('|'.join([str(x) for x in m]) + '\n')

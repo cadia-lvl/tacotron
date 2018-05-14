@@ -121,7 +121,7 @@ def _linspect_to_melspect(spect):
     global _mel_basis
     if _mel_basis is None:
         _mel_basis = _build_mel_basis()
-    return np.dot(_mel_basis, spectogram)
+    return np.dot(_mel_basis, spect)
 
 def _build_mel_basis():
     '''
