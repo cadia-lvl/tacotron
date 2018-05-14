@@ -5,7 +5,7 @@ from hparams import hparams
 
 def _amp_to_db(x):
     return 20 * np.log10(np.maximum(1e-5, x))
-
+    
 def _normalize(S):
     return np.clip((S - hparams.min_level_db) / -hparams.min_level_db, 0, 1)
 
