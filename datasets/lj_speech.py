@@ -63,7 +63,7 @@ def _process_utterance(out_dir, wav_id, index, text):
     wav_path = os.path.join(_data_dir, 'wavs', '%s.wav' % wav_id)
     wav = load_wav(wav_path)
     # Get the linear-scale spectrogram
-    spect = at.spectogram(wav).astype(np.float32)
+    spect = at.spectrogram(wav).astype(np.float32)
     n_frames = spect.shape[1]
     # Get the mel-scaled spectrogram
     melspect = at.mel_spectrogram(wav).astype(np.float32)

@@ -4,7 +4,7 @@ import librosa
 import numpy as np
 
 
-def spectogram(y):
+def spectrogram(y):
     '''
         Input
         y: a numpy array representing a sound signal
@@ -23,6 +23,19 @@ def spectogram(y):
     S = _amp_to_db(np.abs(D)) - hparams.ref_level_db
     # Finally normalize the output
     return _normalize(S)
+
+def spectrogram_inv(spect):
+    '''
+        Input
+        spect: A linear spectrogram
+
+        Convert a spectrogram back to a waveform using the
+        Griffin-lim algorithm. This is used in synthesizing
+    '''
+    # Unwind normalization and dB-scaling
+    S = _db_to_amp(_normalize_inv(spect) + hparams.ref_level_db)
+    # Apply the Griffin-lim algorithm and unwind the pre-emphasis
+    return pre_emphasis_inv(_griffin_lim(S ** hparams.power))
 
 def mel_spectrogram(y):
     '''
@@ -59,6 +72,13 @@ def pre_emphasis(x):
     '''
     return signal.lfilter([1, -hparams.preemphasis], [1], x)
 
+def pre_emphasis_inv(x):
+    '''
+        Rewinds the pre emphasis filter. This is used
+        in synthesizing
+    '''
+    return signal.lfilter([1], [1, -hparams.preemphasis], x)
+
 
 def _stft(y):
     '''
@@ -75,6 +95,20 @@ def _stft(y):
     '''
     n_fft, hop_length, win_length = _stft_params()
     return librosa.stft(y, n_fft=n_fft, hop_length=hop_length, 
+        win_length=win_length, window='hann')
+
+def _stft_inv(spect):
+  '''
+    Input
+    spect: Spectrogram
+
+    Returns the inverse short-time Fourier transform (ISTFT).
+    Converts a complex-valued spectrogram stft_matrix to 
+    time-series y by minimizing the mean squared error between 
+    spect and STFT of y._
+  '''
+  _, hop_length, win_length = _stft_params()
+  return librosa.istft(spect, hop_length=hop_length, 
         win_length=win_length, window='hann')
 
 def _stft_params():
@@ -94,6 +128,22 @@ def _stft_params():
     return n_fft, hop_length, win_length
 
 
+def _griffin_lim(spect):
+    '''
+        Input
+        spect: A spectrogram
+
+        Apply the Griffin-Lim Algorithm (GLA) on the spectrogram
+        to estimate the signal that has been STFTed
+    '''
+    angles = np.exp(2j * np.pi * np.random.rand(*spect.shape))
+    S_complex = np.abs(spect).astype(np.complex)
+    y = _stft_inv(S_complex * angles)
+    for _ in range(hparams.griffin_lim_iters):
+        angles = np.exp(1j * np.angle(_stft(y)))
+        y = _stft_inv(S_complex * angles)
+    return y
+
 
 # Conversions
 
@@ -105,6 +155,13 @@ def _amp_to_db(x):
         dB-scaled spectrogram
     '''
     return 20 * np.log10(np.maximum(1e-5, x))
+
+def _db_to_amp(x):
+    '''
+        Converts a dB-scaled spectrogram to a amplitude-scaled
+        spectrogram
+    '''
+    return np.power(10.0, x * 0.05)
 
 def _linspect_to_melspect(spect):
     '''
@@ -142,3 +199,13 @@ def _normalize(S):
 
     '''
     return np.clip((S - hparams.min_level_db) / -hparams.min_level_db, 0, 1)
+
+def _normalize_inv(S):
+    '''
+        Input
+        S: Spectrogram
+
+        Unwinds the normalization function applied
+        to the spectrogram. This is used in synthesizing
+    '''
+    return (np.clip(S, 0, 1) * -hparams.min_level_db) + hparams.min_level_db

@@ -5,4 +5,4 @@
 * Now you can start training
 
 # Other notes
-* If you run into filewatcher issues, blacklist datasets, virtualenv and `.git`  
+* If you run into filewatcher issues, blacklist datasets, training, virtualenv and `.git`  
