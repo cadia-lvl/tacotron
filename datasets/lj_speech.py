@@ -49,8 +49,9 @@ def load_data(out_dir):
     index = 0
     with open(os.path.join(_data_dir, 'metadata.csv'), encoding='utf-8') as f:
         for line in f:
-           # Each line has the form "{id} | {text}"
-           # where {id} indexes the relevant .wav file
+           # Each line has the form "{id} | {text} | {norm text}"
+           # where {id} indexes the relevant .wav file and norm text
+           # is a normalized version of the text (3 -> three etc.)
            [wav_id, text, norm_text] = line.strip().split('|')
            futures.append(executor.submit(partial(_process_utterance, out_dir, wav_id, index, norm_text)))
            index += 1
