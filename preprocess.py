@@ -1,5 +1,5 @@
 from multiprocessing import cpu_count
-from tools import data
+from data import data_load
 import argparse
 import os
 from hparams import hparams
@@ -23,7 +23,7 @@ def preprocess_ljspeech(args):
     in_dir = os.path.join(args.base_dir, 'LJSpeech-1.1')
     out_dir = os.path.join(args.base_dir, args.output_dir)
     os.makedirs(out_dir, exist_ok=True)
-    metadata = data.load_ljspeech(in_dir, out_dir)
+    metadata = data_load.prep_ljspeech(in_dir, out_dir)
     write_metadata(metadata, args.output_dir)
 
 def preprocess_icelandic(args):
@@ -50,7 +50,7 @@ def preprocess_icelandic(args):
     in_dir = os.path.join(args.base_dir, 'TTS_icelandic_Google_m/ismData')
     out_dir = os.path.join(args.base_dir, args.output_dir)
     os.makedirs(out_dir, exist_ok=True)
-    metadata = data.load_icelandic(in_dir, out_dir)
+    metadata = data_load.prep_icelandic(in_dir, out_dir)
     write_metadata(metadata, out_dir)
 
 
@@ -79,4 +79,4 @@ if __name__ == '__main__':
         preprocess_ljspeech(args)
     elif args.dataset == 'icelandic':
         preprocess_icelandic(args)
-    print('Data has been preprocessed and is now available at ', args.base_dir)
+    print('Data has been preprocessed and is now available at ', os.path.join(args.base_dir, args.output_dir))

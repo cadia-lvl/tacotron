@@ -11,7 +11,7 @@ from hparams import hparams
 from tools import audio
 
 
-def load_ljspeech(in_dir, out_dir):
+def prep_ljspeech(in_dir, out_dir):
     '''
         Preprocesses the LJ Speech dataset from a given input path into a 
         given output directory.
@@ -38,7 +38,7 @@ def load_ljspeech(in_dir, out_dir):
             index += 1
     return [future.result() for future in tqdm(futures)]
 
-def load_icelandic(in_dir, out_dir):
+def prep_icelandic(in_dir, out_dir):
   '''
     Preprocesses the Icelandic dataset from a given input path into a given 
     output directory.

@@ -30,6 +30,7 @@ hparams = tf.contrib.training.HParams(
 
     # Training:
     batch_size=32,
+    superbatch_size = 32,
     adam_beta1=0.9,
     adam_beta2=0.999,
     initial_learning_rate=0.002,

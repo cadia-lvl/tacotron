@@ -1,21 +1,15 @@
-import numpy as np
-import matplotlib.pyplot as plt
-import audio_tools as at
-import io
-from hparams import hparams
-import librosa
+import os
+import argparse
+from data.data_feed import DataFeeder
+from text.text_tools import onehot_to_text
 
-'''
-spect = np.load('training/ljspeech-spec-00001.npy')
-plt.pcolormesh(spect.T)
-plt.show()
-'''
 
-# This freaks out, issues with the GLA implementation
-spect = np.load('training/ljspeech-spec-01234.npy')
-print(spect.shape)
-wav = at.spectrogram_inv(spect.T)
-wav *= 32767.0 / max(0.01, np.max(np.abs(wav)))
-librosa.output.write_wav('test_1.wav', wav.astype(np.float16), 22050)
-librosa.output.write_wav('test_2.wav', wav.astype(np.float16), 20000)
-librosa.output.write_wav('test_3.wav', wav.astype(np.float16), 24000)
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron_data'))
+    parser.add_argument('--input_dir', default='training')
+    args = parser.parse_args()
+    d = DataFeeder(os.path.join(args.base_dir, args.input_dir))
+    a = d._get_next_superbatch()
+    for b in a:
+        print(onehot_to_text(b[0][0]))
