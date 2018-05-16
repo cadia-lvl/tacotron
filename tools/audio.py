@@ -3,6 +3,13 @@ from hparams import hparams
 import librosa
 import numpy as np
 
+def load_wav(path):
+    '''
+        Loads a single waveform file from
+        disk at the given path
+    '''
+    return librosa.core.load(path, sr=hparams.sample_rate)[0]
+
 
 def spectrogram(y):
     '''

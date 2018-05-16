@@ -10,6 +10,7 @@ hparams = tf.contrib.training.HParams(
 
    # Audio:
     num_mels=80,
+    num_freq=1025, # note: (num_freq - 1) * 2 = n_fft
     n_fft=2048, # the number of points in the Fourier transformation
     sample_rate=24000,
     frame_length_ms=50,
