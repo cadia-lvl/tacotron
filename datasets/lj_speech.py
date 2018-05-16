@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from functools import partial
 from tqdm import tqdm
 import audio_tools as at
-
+from hparams import hparams
 
 '''
     A python handler for the LJSpeech data-set
@@ -36,8 +36,6 @@ import audio_tools as at
     Mean Words per Clip    17.23
     Distinct Words         13,821
 '''
-
-_sample_rate = 22050
 _data_dir = os.path.join(os.getcwd(), 'datasets/LJSpeech-1.1/')
 
 def load_data(out_dir):
@@ -58,7 +56,7 @@ def load_data(out_dir):
     return [future.result() for future in tqdm(futures)]  
 
 def load_wav(path):
-  return librosa.core.load(path, sr=_sample_rate)[0]
+  return librosa.core.load(path, sr=hparams.sample_rate)[0]
 
 def _process_utterance(out_dir, wav_id, index, text):
     wav_path = os.path.join(_data_dir, 'wavs', '%s.wav' % wav_id)
