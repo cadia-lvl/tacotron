@@ -70,7 +70,6 @@ class DataFeeder(threading.Thread):
         '''
         lin_target_path, mel_target_path, n_frames, text = self._metadata[self._cursor] 
         self.increment_cursor()
-
         lin_target = np.load(os.path.join(self._in_dir, lin_target_path))
         mel_target = np.load(os.path.join(self._in_dir, mel_target_path))
         onehot_text = text_to_onehot(text)
@@ -82,6 +81,60 @@ class DataFeeder(threading.Thread):
             to 0 if we have reached the end of the dataset
         '''
         if self._cursor >= self._num_samples:
+            # start from beginning and shuffle the
+            # data again
+            self._cursor = 0
+            random.shuffle(self._metadata)
+        else:   
+            self._cursor += 1
+
+
+class SimpleDataFeeder:
+    def __init__(self, in_dir):
+        self._in_dir = in_dir
+        self._metadata = load_metadata(os.path.join(in_dir, 'train.txt'))
+        random.shuffle(self._metadata)
+        self._cursor = 0 # index of the next sample
+        self._num_samples = len(self._metadata)
+        self._hparams = hparams
+        self.batch_size = hparams.batch_size
+        self.superbatch_size = hparams.superbatch_size
+
+
+    def get_next_superbatch(self):
+        '''
+            Get the next superbatch (a list of batches). 
+            The size of superbatches is set in hparams.
+        '''
+        superbatch =  [self._get_next_sample() for _ in range(self.superbatch_size*self.batch_size)]
+        # sort the samples in the superbatch on length w.r.t. time
+        superbatch.sort(key=lambda x: x[-1])
+        # now bucket the batches in that order to improve efficiency
+        batches = [superbatch[i:i+self.batch_size] for i in range(0, len(superbatch), self.batch_size)]
+        random.shuffle(batches)
+        return batches
+
+    def _get_next_sample(self):
+        '''
+            Loads a single sample from the dataset
+            
+            Output:
+            (Onehot text input, mel target, linear target, cost)
+        '''
+        lin_target_path, mel_target_path, n_frames, text = self._metadata[self._cursor] 
+        self.increment_cursor()
+
+        lin_target = np.load(os.path.join(self._in_dir, lin_target_path))
+        mel_target = np.load(os.path.join(self._in_dir, mel_target_path))
+        onehot_text = text_to_onehot(text)
+        return (onehot_text, mel_target, lin_target, n_frames)
+
+    def increment_cursor(self):
+        '''
+            Increments the dataset cursor, or sets it
+            to 0 if we have reached the end of the dataset
+        '''
+        if self._cursor >= self._num_samples - 1:
             # start from beginning and shuffle the
             # data again
             self._cursor = 0
