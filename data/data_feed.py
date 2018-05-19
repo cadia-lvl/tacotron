@@ -110,7 +110,7 @@ class SimpleDataFeeder:
         # sort the samples in the superbatch on length w.r.t. time
         superbatch.sort(key=lambda x: x[-1])
         # now bucket the batches in that order to improve efficiency
-        batches = [superbatch[i:i+self.batch_size] for i in range(0, len(superbatch), self.batch_size)]
+        batches = [self._prepare_batch(superbatch[i:i+self.batch_size]) for i in range(0, len(superbatch), self.batch_size)]
         random.shuffle(batches)
         return batches
 
@@ -141,6 +141,15 @@ class SimpleDataFeeder:
             random.shuffle(self._metadata)
         else:   
             self._cursor += 1
+
+
+    def _prepare_batch(self, batch):
+        random.shuffle(batch)
+        inputs = _prepare_inputs([x[0] for x in batch])
+
+    def _prepare_input(self, input):
+        max_len = max([len(x) for x in input])
+        return np.stack([_pad_input(x, max_len) for x in input])
 
 
 def load_metadata(path):
