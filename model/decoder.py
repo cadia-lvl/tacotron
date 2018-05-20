@@ -1,7 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib.rnn import GRUCell, MultiRNNCell, OutputProjectionWrapper, ResidualWrapper
-from tensorflow.contrib.seq2seq import BasicDecoder
-
+from tensorflow.contrib.seq2seq import AttentionWrapper, BahdanauAttention, BasicDecoder
+from model.rnn_wrappers import ConcatOutputAndAttentionWrapper, DecoderPrenetWrapper
 from hparams import hparams
 
 
@@ -11,22 +11,24 @@ class Decoder:
         self._hparams = hparams
         self._is_training = is_training
 
-    def decode(self, inputs,batch_size):
-        self.decoder_cell = MultiRNNCell([
-            OutputProjectionWrapper(inputs, self._hparams.decoder_depth),
+    def decode(self, encoder_outputs, batch_size):
+        # Attention
+        attention_cell = AttentionWrapper(
+            DecoderPrenetWrapper(GRUCell(self._hparams.attention_depth), self._is_training, self._hparams.prenet_depths),
+            BahdanauAttention(self._hparams .attention_depth, encoder_outputs),
+            alignment_history=True,
+            output_attention=False)                                                  # [N, T_in, attention_depth=256]
+
+        # Concatenate attention context vector and RNN cell output into a 2*attention_depth=512D vector.
+        concat_cell = ConcatOutputAndAttentionWrapper(attention_cell)              # [N, T_in, 2*attention_depth=512]
+
+        # Decoder (layers specified bottom to top):
+        decoder_cell = MultiRNNCell([
+            OutputProjectionWrapper(concat_cell, self._hparams.decoder_depth),
             ResidualWrapper(GRUCell(self._hparams.decoder_depth)),
             ResidualWrapper(GRUCell(self._hparams.decoder_depth))
-        ], state_is_tuple=True)
+            ], state_is_tuple=True)                                                  # [N, T_in, decoder_depth=256]
 
-        self.output_cell = OutputProjectionWrapper(self.decoder_cell, hp.num_mels*hp.output_size)
-        self.decoder_init_state = self.output_cell.zero_stat(batch_size=batch_size, dtype=tf.float32)
-        if self._is_training:
-            self.helper = ..
-        else:
-            self.helper = ..
-
-        (self.decoder_outputs, _), self.final_decoder_state, _ = tf.contrib.seq2seq.dynamic_decode(
-        BasicDecoder(self.output_cell, helper, self.decoder_init_state),
-        maximum_iterations=hp.max_iters)
-
-        return self.decoder_outputs, self.final_decoder_state
+        # Project onto r mel spectrograms (predict r outputs at each RNN step):
+        output_cell = OutputProjectionWrapper(decoder_cell, self._hparams.num_mels * self._hparams.outputs_per_step)
+        decoder_init_state = output_cell.zero_state(batch_size=batch_size, dtype=tf.float32)
