@@ -85,7 +85,7 @@ class Tacotron:
         '''
         with tf.variable_scope('optimizer') as scope:
             if self._hparams.decay_learning_rate:
-                self.learning_rate = _learning_rate_decay(self._hparams.initial_learning_rate, global_step)
+                self.learning_rate = _learning_rate_decay(self._hparams.initial_learning_rate, self.global_step)
             else:
                 self.learning_rate = tf.convert_to_tensor(self._hparams.initial_learning_rate)
             optimizer = tf.train.AdamOptimizer(self.learning_rate, self._hparams.adam_beta1, self._hparams.adam_beta2)
@@ -97,7 +97,7 @@ class Tacotron:
             # https://github.com/tensorflow/tensorflow/issues/1122
             with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
                 self.optimize = optimizer.apply_gradients(zip(clipped_gradients, variables),
-                global_step=global_step)
+                global_step=self.global_step)
 
     def train(self, log_dir, args):
         checkpoint_path = os.path.join(log_dir, 'model.ckpt')
@@ -127,27 +127,31 @@ class Tacotron:
                 summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
                 sess.run(tf.global_variables_initializer())
 
+                # TODO: implement this stuff
+                '''
                 if args.restore_step:
                     # Restore from a checkpoint if the user requested it.
                     restore_path = '%s-%d' % (checkpoint_path, args.restore_step)
                     saver.restore(sess, restore_path)
                     log.log('Resuming from checkpoint: %s at commit: %s' % (restore_path, commit), slack=True)
                 else:
-                    log.log('Starting new training run at commit: %s' % commit, slack=True)
+                '''
+                # TODO : add this
+                #log.log('Starting new training run at commit: %s' % 0, slack=True)
 
                 feeder.start_in_session(sess)
 
                 while not coord.should_stop():
                     start_time = time.time()
-                    step, loss, opt = sess.run([global_step, model.loss, model.optimize])
+                    step, loss, opt = sess.run([self.global_step, self.loss, self.optimize])
                     time_window.append(time.time() - start_time)
                     loss_window.append(loss)
                     message = 'Step %-7d [%.03f sec/step, loss=%.05f, avg_loss=%.05f]' % (
                     step, time_window.average, loss, loss_window.average)
-                    log.log(message, slack=(step % args.checkpoint_interval == 0))
+                    #log.log(message, slack=(step % args.checkpoint_interval == 0))
 
             except Exception as e:
-                log.log('Exiting due to exception: %s' % e, slack=True)
+                #log.log('Exiting due to exception: %s' % e, slack=True)
                 traceback.print_exc()
                 coord.request_stop(e)
 
