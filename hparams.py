@@ -6,11 +6,11 @@ eos = '~'
 chars = 'AÁBCDÐEÉFGHIÍJKLMNOÓPQRSTUÚVWXYÝZÞÆÖaábcdðeéfghiíjklmnoópqrstuúvwxyýzþæö!\'(),-.:;? '
 # Default hyperparameters:
 hparams = HParams(
-  # Comma-separated list of cleaners to run on text prior to training and eval. For non-English
-  # text, you may want to use "basic_cleaners" or "transliteration_cleaners" See TRAINING_DATA.md.
-  cleaners='basic_cleaners',
+    # Comma-separated list of cleaners to run on text prior to training and eval. For non-English
+    # text, you may want to use "basic_cleaners" or "transliteration_cleaners" See TRAINING_DATA.md.
+    cleaners='basic_cleaners',
 
-   # Audio:
+    # Audio:
     num_mels=80,
     num_freq=1025, # note: (num_freq - 1) * 2 = n_fft
     n_fft=2048, # the number of points in the Fourier transformation
@@ -36,7 +36,16 @@ hparams = HParams(
     encoder_num_highway_layers = 4,
     encoder_highway_depth = 128,
     encoder_gru_num_cells = 128,
-    # -- decoder #TODO
+    # -- decoder
+    decoder_K = 8,
+    decoder_bank_num_filters = 128,
+    decoder_pooling_stride = 1,
+    decoder_pooling_width = 2,
+    decoder_proj_num_filters = [256, 80],
+    decoder_proj_filter_width = 3,
+    decoder_num_highway_layers = 4,
+    decoder_highway_depth = 128,
+    decoder_gru_num_cells = 128,
     
     postnet_depth=256,
     attention_depth=256,

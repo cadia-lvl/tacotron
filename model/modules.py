@@ -27,7 +27,7 @@ def prenet(inputs, training, layers, scope=None):
             inputs = tf.layers.dropout(dense, training=training, name='prenet_dropout_{}'.format(i+1))
     return inputs
 
-def cbhg(inputs, input_lengths, training, **kwargs):
+def cbhg(inputs, input_lengths, training, scope, **kwargs):
     '''
         The CBHG module consists of the following steps:
             1) Bank with K sets of 1-D convolutional filters where the k-th set contains C_k (128)
@@ -56,8 +56,7 @@ def cbhg(inputs, input_lengths, training, **kwargs):
         return:
             inputs after cbhg module propagation
     '''
-    #TODO: replace crap
-    with tf.variable_scope('Crap'):
+    with tf.variable_scope(scope):
         # 1-D convolution banking. Concatenate on the last axis (iterating filters) so that 
         # all filters from all sets are stacked
         with tf.variable_scope('conv_bank'):
@@ -71,10 +70,10 @@ def cbhg(inputs, input_lengths, training, **kwargs):
             strides=kwargs.get('pooling_stride'),padding='same')
 
         # Projection layers
-        proj1_out = convolute(maxpool_out, kwargs.get('proj_num_filters'), 
-            kwargs.get('proj_filter_width')[0], tf.nn.relu, training, 'proj_1')
-        proj2_out = convolute(proj1_out, kwargs.get('proj_num_filters'),
-            kwargs.get('proj_filter_width')[0], None, training, 'proj_2')
+        proj1_out = convolute(maxpool_out, kwargs.get('proj_filter_width'), 
+            kwargs.get('proj_num_filters')[0], tf.nn.relu, training, 'proj_1')
+        proj2_out = convolute(proj1_out, kwargs.get('proj_filter_width'),
+            kwargs.get('proj_num_filters')[1], None, training, 'proj_2')
 
 
         # combine the output with the original input in this residual connection

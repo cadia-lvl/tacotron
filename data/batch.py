@@ -32,7 +32,7 @@ class Batch:
 
     def get_embedds(self):
       embedding_table = tf.get_variable(
-        'embedding', [len(chars), hparams.embedded_depth], dtype=tf.float32,
+        'embedding', [len(chars), hparams.get('embedded_depth')], dtype=tf.float32,
         initializer=tf.truncated_normal_initializer(stddev=0.5))
       return tf.nn.embedding_lookup(embedding_table, self._inputs)
     
@@ -55,7 +55,7 @@ class Batch:
         self._mel_targets.set_shape(placeholders[2].shape)
         self._lin_targets.set_shape(placeholders[3].shape)
     
-    def _prepare_batch(self, outputs_per_step=hparams.outputs_per_step):
+    def _prepare_batch(self, outputs_per_step=hparams.get('outputs_per_step')):
         '''
             Prepares both inputs and targets for
             inference
@@ -128,7 +128,7 @@ def pad_input(x, length):
             A padded numpy vector
     '''
     return np.pad(x, (0, length - x.shape[0]), mode='constant', 
-        constant_values=hparams.pad_value)
+        constant_values=hparams.get('pad_value'))
 
 def pad_target(t, length):
     '''
@@ -146,7 +146,7 @@ def pad_target(t, length):
 
     '''
     return np.pad(t, [(0, length - t.shape[0]), (0,0)], mode='constant', 
-        constant_values=hparams.pad_value)
+        constant_values=hparams.get('pad_value'))
 
 def round_up(x):
     '''
@@ -160,8 +160,8 @@ def round_up(x):
             x rounded up to outputs_per_step
 
     '''
-    remainder = x % hparams.outputs_per_step
+    remainder = x % hparams.get('outputs_per_step')
     if remainder == 0:
         return x
     else:
-        return x + hparams.outputs_per_step - remainder
+        return x + hparams.get('outputs_per_step') - remainder

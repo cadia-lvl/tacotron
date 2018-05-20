@@ -44,20 +44,15 @@ class Tacotron:
                 helper = TestingHelper(batch_size, self._hparams.num_mels, 
                     self._hparams.outputs_per_step)
             decoder = Decoder(helper, is_training=is_training)
-            decoder_outputs, final_decoder_state = decoder.decode(encoder_outputs,batch_size)
+            mel_outputs, lin_outputs, final_decoder_state = decoder.decode(encoder_outputs,batch_size)
 
-            mel_outputs = tf.reshape(decoder_outputs, [batch_size,-1, self._hparams.num_mels])
-
-            # Post processing CHBG
-            post_out = modules.post_cbhg(mel_outputs, self._hparams.num_mels, is_training, self._hparams.postnet_depth)
-            linear_out = tf.layers.dense(post_out, self._hparams.num_freq)
-
+           
             # Alignments
             alignments = tf.transpose(final_decoder_state[0].alignment_history.stack(), [1,2,0])
 
             self.inputs, self.input_lengths, self.mel_targets, self.linear_targets = batch.get_all()
-            self.mel_outputs = batch.get_mel_outputs()
-            self.linear_outputs = linear_out
+            self.mel_outputs = mel_outputs
+            self.linear_outputs = lin_outputs
             self.alignments = alignments
 
     def add_loss(self):
@@ -138,7 +133,7 @@ class Tacotron:
                 else:
                 '''
                 # TODO : add this
-                self.log('Starting new training run at commit: %s' % 0, slack=True)
+                self.log.log('Starting new training run at commit: %s' % 0, slack=True)
 
                 feeder.start_in_session(sess)
 

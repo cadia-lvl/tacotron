@@ -7,7 +7,7 @@ class TrainingHelper(Helper):
     
     def __init__(self, inputs, targets, output_dim, r):
         # inputs is [N, T_in], targets is [N, T_out, D]
-        with tf.name_scope('Training helper'):
+        with tf.name_scope('Training_helper'):
             self._batch_size = tf.shape(inputs)[0]
             self._output_dim = output_dim
 
@@ -37,7 +37,7 @@ class TrainingHelper(Helper):
         return tf.tile([0], [self._batch_size])  # Return all 0; we ignore them
 
     def next_inputs(self, time, outputs, state, sample_ids, name=None):
-        with tf.name_scope(name or 'Training helper'):
+        with tf.name_scope(name or 'Training_helper'):
             finished = (time + 1 >= self._lengths)
             next_inputs = self._targets[:, time, :]
             return (finished, next_inputs, state)
@@ -46,7 +46,7 @@ class TrainingHelper(Helper):
 # Adapted from tf.contrib.seq2seq.GreedyEmbeddingHelper
 class TestingHelper(Helper):
     def __init__(self, batch_size, output_dim, r):
-        with tf.name_scope('Test Helper'):
+        with tf.name_scope('Test_Helper'):
             self._batch_size = batch_size
             self._output_dim = output_dim
             self._end_token = tf.tile([0.0], [output_dim * r])
@@ -71,7 +71,7 @@ class TestingHelper(Helper):
 
     def next_inputs(self, time, outputs, state, sample_ids, name=None):
         '''Stop on EOS. Otherwise, pass the last output as the next input and pass through state.'''
-        with tf.name_scope('Test Helper'):
+        with tf.name_scope('Test_Helper'):
             finished = tf.reduce_all(tf.equal(outputs, self._end_token), axis=1)
             # Feed last output frame as next input. outputs is [N, output_dim * r]
             next_inputs = outputs[:, -self._output_dim:]

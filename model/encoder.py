@@ -34,7 +34,7 @@ class Encoder:
             return:
                 inputs after propagating throught the prenet
         '''
-        return prenet(inputs, self._is_training, self._hparams.prenet_depths)
+        return prenet(inputs, self._is_training, self._hparams.get('prenet_depths'))
 
     def _cbhg(self, inputs, input_lengths):
         '''
@@ -50,14 +50,14 @@ class Encoder:
                 inputs after cbhg module propagation
         '''
         kwargs = {
-            'K': self._hparams.encoder_K,
-            'bank_num_filters': self._hparams.encoder_bank_num_filters,
-            'pooling_stride': self._hparams.encoder_pooling_stride,
-            'pooling_width': self._hparams.encoder_pooling_width,
-            'proj_num_filters': self._hparams.encoder_proj_num_filters,
-            'proj_filter_width': self._hparams.encoder_proj_filter_width,
-            'num_highway_layers': self._hparams.encoder_num_highway_layers,
-            'highway_depth': self._hparams.encoder_highway_depth,
-            'gru_num_cells': self._hparams.encoder_gru_num_cells
+            'K': self._hparams.get('encoder_K'),
+            'bank_num_filters': self._hparams.get('encoder_bank_num_filters'),
+            'pooling_stride': self._hparams.get('encoder_pooling_stride'),
+            'pooling_width': self._hparams.get('encoder_pooling_width'),
+            'proj_num_filters': self._hparams.get('encoder_proj_num_filters'),
+            'proj_filter_width': self._hparams.get('encoder_proj_filter_width'),
+            'num_highway_layers': self._hparams.get('encoder_num_highway_layers'),
+            'highway_depth': self._hparams.get('encoder_highway_depth'),
+            'gru_num_cells': self._hparams.get('encoder_gru_num_cells')
         }
-        return cbhg(inputs, input_lengths, self._is_training, **kwargs)
+        return cbhg(inputs, input_lengths, self._is_training, 'encoder_cbhg', **kwargs)
