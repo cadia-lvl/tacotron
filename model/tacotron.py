@@ -1,6 +1,10 @@
 import os
-
+import argparse
+import time
+import traceback
+import numpy as np
 import tensorflow as tf
+
 from tensorflow.contrib.rnn import GRUCell, MultiRNNCell,OutputProjectionWrapper, ResidualWrapper
 from tensorflow.contrib.seq2seq import AttentionWrapper, BahdanauAttention, BasicDecoder
 
@@ -10,7 +14,7 @@ from model.encoder import Encoder
 from model.decoder import Decoder
 
 from data.data_feeder import Datafeeder
-
+from tools import audio, logger, ValueWindow
 
 class Tacotron:
     def __init__(self, hparams=hparams):
@@ -90,42 +94,54 @@ class Tacotron:
     def train(self, log_dir, args):
         checkpoint_path = os.path.join(log_dir, 'model.ckpt')
         input_path = os.path.join(args.base_dir, args.input)
+        self.log = logger.TrainingLogger(log_dir)
 
         # Coordinator and Datafeeder
         coord = tf.train.Coordinator()
         with tf.variable_scope('datafeeder') as scope:
             feeder = Datafeeder(coord,input_path)
-            step = 0
-            time_window = ValueWindow(100)
-            loss_window = ValueWindow(100)
-            saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=2)
 
-            self.global_step = tf.Variable(0, name='global_step', trainable=False)
+        with tf.variable_scope('model') as scope:
+            self.initialize(feeder.current_batch)
+            self.add_loss()
+            self.add_optimizer()
 
-            # Train!
-            with tf.Session() as sess:
-                try:
-                    summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
-                    sess.run(tf.global_variables_initializer())
+        step = 0
+        time_window = ValueWindow(100)
+        loss_window = ValueWindow(100)
+        saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=2)
 
-                    if args.restore_step:
-                        # Restore from a checkpoint if the user requested it.
-                        restore_path = '%s-%d' % (checkpoint_path, args.restore_step)
-                        saver.restore(sess, restore_path)
-                        log('Resuming from checkpoint: %s at commit: %s' % (restore_path, commit), slack=True)
-                    else:
-                        log('Starting new training run at commit: %s' % commit, slack=True)
+        self.global_step = tf.Variable(0, name='global_step', trainable=False)
 
-                    feeder.start_in_session(sess)
+        # Train!
+        with tf.Session() as sess:
+            try:
+                summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
+                sess.run(tf.global_variables_initializer())
 
-                    while not coord.should_stop():
-                        start_time = time.time()
-                        step, loss, opt = sess.run([global_step, model.loss, model.optimize])
-                        time_window.append(time.time() - start_time)
-                        loss_window.append(loss)
-                        message = 'Step %-7d [%.03f sec/step, loss=%.05f, avg_loss=%.05f]' % (
-                        step, time_window.average, loss, loss_window.average)
-                        log(message, slack=(step % args.checkpoint_interval == 0))
+                if args.restore_step:
+                    # Restore from a checkpoint if the user requested it.
+                    restore_path = '%s-%d' % (checkpoint_path, args.restore_step)
+                    saver.restore(sess, restore_path)
+                    log.log('Resuming from checkpoint: %s at commit: %s' % (restore_path, commit), slack=True)
+                else:
+                    log.log('Starting new training run at commit: %s' % commit, slack=True)
+
+                feeder.start_in_session(sess)
+
+                while not coord.should_stop():
+                    start_time = time.time()
+                    step, loss, opt = sess.run([global_step, model.loss, model.optimize])
+                    time_window.append(time.time() - start_time)
+                    loss_window.append(loss)
+                    message = 'Step %-7d [%.03f sec/step, loss=%.05f, avg_loss=%.05f]' % (
+                    step, time_window.average, loss, loss_window.average)
+                    log.log(message, slack=(step % args.checkpoint_interval == 0))
+
+            except Exception as e:
+                log.log('Exiting due to exception: %s' % e, slack=True)
+                traceback.print_exc()
+                coord.request_stop(e)
 
 
 
@@ -156,8 +172,10 @@ def main():
     run_name = args.name or args.model
     log_dir = os.path.join(args.base_dir, 'logs-%s' % run_name)
     os.makedirs(log_dir, exist_ok=True)
-    infolog.init(os.path.join(log_dir, 'train.log'), run_name, args.slack_url)
     hparams.parse(args.hparams)
-    train(log_dir, args)
+    with tf.variable_scope('model') as scope:
+        model = Tacotron(hparams)
+        # stats = add_stats(model)
+    self.train(log_dir,args)
 
 
