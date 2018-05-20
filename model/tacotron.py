@@ -3,7 +3,7 @@ import os
 import tensorflow as tf
 from tensorflow.contrib.rnn import GRUCell, MultiRNNCell,OutputProjectionWrapper, ResidualWrapper
 from tensorflow.contrib.seq2seq import AttentionWrapper, BahdanauAttention, BasicDecoder
-
+from helpers import TestingHelper, TrainingHelper
 from hparams import hparams
 from model import modules
 from model.encoder import Encoder
@@ -30,8 +30,14 @@ class Tacotron:
             encoder = Encoder(is_training=is_training)
             encoder_outputs = encoder.encode(batch.get_embedds(), batch.get_input_lengths())
 
-            # Decoder 
-            decoder = Decoder(is_training=is_training)
+            # Decoder
+            if is_training:
+                helper = TrainingHelper(batch.get_inputs(), batch.get_mel_targets(), 
+                    self._hparams.num_mels, self._hparams.outputs_per_step)
+            else:
+                helper = TestingHelper(batch_size, self._hparams.num_mels, 
+                    self._hparams.outputs_per_step)
+            decoder = Decoder(helper, is_training=is_training)
             decoder_outputs, final_decoder_state = decoder.decode(encoder_outputs,batch_size)
 
             mel_outputs = tf.reshape(decoder_outputs, [batch_size,-1, self._hparams.num_mels])
