@@ -4,26 +4,22 @@ from tensorflow.contrib.seq2seq import BasicDecoder, BahdanauAttention, Attentio
 from model import encoder, decoder, modules
 from .hparams import hparams as hp
 from model.rnn_wrappers import DecoderPrenetWrapper, ConcatOutputAndAttentionWrapper
+from .data.data_feeder import Datafeeder
 
 class Tacotron:
     def __init__(self, hparams=hp):
         self.hp = hparams
 
-    def initialize(self, inputs, input_lengths, mel_targets=None, linear_targets=None):
+    def initialize(self, batch):
         '''
         param:
-      inputs: int32 Tensor with shape [N, T_in] where N is batch size, T_in is number of
-        steps in the input time series, and values are character IDs
-      input_lengths: int32 Tensor with shape [N] where N is batch size and values are the lengths
-        of each sequence in inputs.
-      mel_targets: float32 Tensor with shape [N, T_out, M] where N is batch size, T_out is number
-        of steps in the output time series, M is num_mels, and values are entries in the mel
-        spectrogram. Only needed for training.
-      linear_targets: float32 Tensor with shape [N, T_out, F] where N is batch_size, T_out is number
-        of steps in the output time series, F is num_freq, and values are entries in the linear
-        spectrogram. Only needed for training.
-    '''
+            batch: Batch object
+        '''
         with tf.variable_scope('inference') as scope:
+            inputs = batch._inputs
+            input_lengths = batch._input_lengths
+            mel_targets = batch._mel_targets
+            linear_targets = batch._lin_targets
             training = linear_targes is not None
             batch_size = tf.shape(inputs)[0]
 
@@ -93,6 +89,19 @@ class Tacotron:
       with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
         self.optimize = optimizer.apply_gradients(zip(clipped_gradients, variables),
           global_step=global_step)
+
+    def train(self, log_dir, args):
+        checkpoint_path = os.path.join(log_dir, 'model.ckpt')
+        input_path = os.path.join(args.base_dir, args.input)
+
+        # Coordinator and Datafeeder
+        coord = tf.train.Coordinator()
+        with tf.variable_scope('datafeeder') as scope:
+            feeder = Datafeeder(coord,input_path)
+
+        
+
+
 
 def _learning_rate_decay(init_lr, global_step):
   # Noam scheme from tensor2tensor:
