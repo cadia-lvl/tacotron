@@ -32,7 +32,7 @@ class Batch:
 
     def get_embedds(self):
       embedding_table = tf.get_variable(
-        'embedding', [len(chars), hparams.embed_depth], dtype=tf.float32,
+        'embedding', [len(chars), hparams.embedded_depth], dtype=tf.float32,
         initializer=tf.truncated_normal_initializer(stddev=0.5))
       return tf.nn.embedding_lookup(embedding_table, self._inputs)
     

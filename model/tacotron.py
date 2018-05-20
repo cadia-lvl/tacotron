@@ -102,7 +102,8 @@ class Tacotron:
     def train(self, log_dir, args):
         checkpoint_path = os.path.join(log_dir, 'model.ckpt')
         input_path = os.path.join(args.base_dir, args.input)
-        self.log = logger.TrainingLogger(log_dir)
+        #TODO: Fix this log path issue
+        self.log = logger.TrainingLogger(os.path.join(log_dir,'new_log.log'))
 
         # Coordinator and Datafeeder
         coord = tf.train.Coordinator()
