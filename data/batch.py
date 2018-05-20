@@ -1,16 +1,44 @@
 import numpy as np
 from hparams import hparams
+from text.characters import chars
 import random
+import tensorflow as tf
 
 class Batch:
-    def __init__(self, data):
-        random.shuffle(data)
-        self._inputs = [x[0] for x in data]
-        self._input_lengths = np.asarray([len(x[0]) for x in data], dtype=np.int32)
-        self._mel_targets = [x[1] for x in data]
-        self._lin_targets = [x[2] for x in data]
-        self._prepare_batch()
-            
+    def __init__(self, data, prep=True):
+        if prep: 
+            random.shuffle(data)
+            self._inputs = [x[0] for x in data]
+            self._input_lengths = np.asarray([len(x[0]) for x in data], dtype=np.int32)
+            self._mel_targets = [x[1] for x in data]
+            self._lin_targets = [x[2] for x in data]
+            self._prepare_batch()
+        else:
+            self._inputs, self._input_lengths, self._mel_targets, self._lin_targets = data
+
+
+    def get_input_lengths(self):
+        '''
+            Get the input lengths, i.e. the length of each onehot-representation
+            of this batch's input sequences
+        '''
+        return self._input_lengths
+
+    def get_embedds(self):
+      embedding_table = tf.get_variable(
+        'embedding', [len(chars), hparams.embed_depth], dtype=tf.float32,
+        initializer=tf.truncated_normal_initializer(stddev=0.5))
+      return tf.nn.embedding_lookup(embedding_table, self._inputs)
+    
+    def to_tensorflow(self):
+        return (self._inputs, self._input_lengths, self._mel_targets, self._lin_targets)
+
+    def set_shapes(self, placeholders):
+        self._inputs.set_shape(placeholders[0].shape)
+        self._input_lengths.set_shape(placeholders[1].shape)
+        self._mel_targets.set_shape(placeholders[2].shape)
+        self._lin_targets.set_shape(placeholders[3].shape)
+    
     def _prepare_batch(self, outputs_per_step=hparams.outputs_per_step):
         '''
             Prepares both inputs and targets for
@@ -57,8 +85,10 @@ class Batch:
             |  0     0     0     0   |  10
             -------------------------- (t)
                1     2     3     4 (Hz)
-            and all those spectrograms are stacked on top of one another on the first
-            axis.
+            All those spectrograms are stacked on top of one another on the first
+            axis, resulting in a [N, T_out, F] shaped matrix where N is the batch 
+            size (32), T_out is the number of steps in the output time series (padded) 
+            and F is the number of frequencies (1025) 
 
         '''
         max_len_lin = round_up(max([len(t) for t in self._lin_targets]) + 1)
@@ -68,9 +98,6 @@ class Batch:
         max_len_mel = round_up(max([len(t) for t in self._mel_targets]) + 1)
         self._mel_targets =  np.stack([pad_target(t, max_len_mel) 
             for t in self._mel_targets])
-
-    def get_input_lengths(self):
-        return self._input_lengths
 
 def pad_input(x, length):
     '''
@@ -119,6 +146,6 @@ def round_up(x):
     '''
     remainder = x % hparams.outputs_per_step
     if remainder == 0:
-          return x
+        return x
     else:
         return x + hparams.outputs_per_step - remainder

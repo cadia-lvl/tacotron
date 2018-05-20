@@ -33,7 +33,7 @@ hparams = tf.contrib.training.HParams(
     encoder_proj_filter_width = 3,
     encoder_num_highway_layers = 4,
     encoder_highway_depth = 128,
-    encoder_gru_num_cells = 128
+    encoder_gru_num_cells = 128,
     # -- decoder #TODO
     
     postnet_depth=256,
