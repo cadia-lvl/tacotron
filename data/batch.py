@@ -43,6 +43,12 @@ class Batch:
         '''
         return (self._inputs, self._input_lengths, self._mel_targets, self._lin_targets)
 
+    def get_inputs(self):
+        return self._inputs
+    
+    def get_mel_targets(self):
+        return self._mel_targets
+
     def set_shapes(self, placeholders):
         self._inputs.set_shape(placeholders[0].shape)
         self._input_lengths.set_shape(placeholders[1].shape)
