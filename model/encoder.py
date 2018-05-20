@@ -4,9 +4,9 @@ from hparams import hparams
 from modules import prenet, cbhg
 
 class Encoder:
-    def __init__(self, training=False):
+    def __init__(self, is_training=False):
         self._hparams = hparams
-        self._training = training
+        self._is_training = is_training
 
     def encode(self, inputs, input_lengths):
         '''
@@ -32,7 +32,7 @@ class Encoder:
             return:
                 inputs after propagating throught the prenet
         '''
-        return prenet(inputs, self._training, self._hparams.prenet_depths)
+        return prenet(inputs, self._is_training, self._hparams.prenet_depths)
 
     def _cbhg(self, inputs, input_lengths):
         '''
@@ -58,4 +58,4 @@ class Encoder:
             'highway_depth': self._hparams.encoder_highway_depth,
             'gru_num_cells': self._hparams.encoder_gru_num_cells
         }
-        return cbhg(inputs, input_lengths, self._training, **kwargs)
+        return cbhg(inputs, input_lengths, self._is_training, **kwargs)

@@ -16,7 +16,6 @@ class Batch:
         else:
             self._inputs, self._input_lengths, self._mel_targets, self._lin_targets = data
 
-
     def get_input_lengths(self):
         '''
             Get the input lengths, i.e. the length of each onehot-representation
@@ -24,13 +23,24 @@ class Batch:
         '''
         return self._input_lengths
 
+    def get_size(self):
+        '''
+            Returns the size of the batch
+        '''
+        return tf.shape(self._inputs)[0]
+
+
     def get_embedds(self):
       embedding_table = tf.get_variable(
         'embedding', [len(chars), hparams.embed_depth], dtype=tf.float32,
         initializer=tf.truncated_normal_initializer(stddev=0.5))
       return tf.nn.embedding_lookup(embedding_table, self._inputs)
     
-    def to_tensorflow(self):
+    def get_all(self):
+        '''
+            Return the relevant data as a tuple:
+            (inputs, input lengts, mel target, linear targets)
+        '''
         return (self._inputs, self._input_lengths, self._mel_targets, self._lin_targets)
 
     def set_shapes(self, placeholders):

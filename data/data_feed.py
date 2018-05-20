@@ -26,7 +26,6 @@ class DataFeeder(threading.Thread):
         random.shuffle(self._metadata)
         self._cursor = 0 # index of the next sample
         self._num_samples = len(self._metadata)
-        print(self._num_samples)
         self._hparams = hparams
         self.batch_size = hparams.batch_size
         self.superbatch_size = hparams.superbatch_size
@@ -75,7 +74,7 @@ class DataFeeder(threading.Thread):
         batches = [Batch(superbatch[i:i+self.batch_size]) for i in range(0, len(superbatch), self.batch_size)]
         random.shuffle(batches)
         for batch in batches:
-            feed_dict = dict(zip(self._placeholders, batch.to_tensorflow()))
+            feed_dict = dict(zip(self._placeholders, batch.get_all()))
             self._session.run(self._enqueue_operation, feed_dict=feed_dict)
 
     def _get_next_sample(self):

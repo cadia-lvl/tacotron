@@ -1,13 +1,14 @@
 import tensorflow as tf
 from tensorflow.contrib.rnn import GRUCell, MultiRNNCell, OutputProjectionWrapper, ResidualWrapper
+from tensorflow.contrib.seq2seq import BasicDecoder
 from hparams import hparams
 
 
 class Decoder:
     # TODO
-    def __init__(self, training=False):
+    def __init__(self, is_training=False):
         self._hparams = hparams
-        self._training = training
+        self._is_training = is_training
 
     def decode(self, inputs,batch_size):
         self.decoder_cell = MultiRNNCell([
@@ -18,7 +19,7 @@ class Decoder:
 
         self.output_cell = OutputProjectionWrapper(self.decoder_cell, hp.num_mels*hp.output_size)
         self.decoder_init_state = self.output_cell.zero_stat(batch_size=batch_size, dtype=tf.float32)
-        if training:
+        if self._is_training:
             self.helper = ..
         else:
             self.helper = ..
