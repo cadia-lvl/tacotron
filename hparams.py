@@ -1,11 +1,11 @@
 
-import tensorflow as tf
+from tensorflow.contrib.training import HParams
 
 pad = '_'
 eos = '~'
 chars = 'AÁBCDÐEÉFGHIÍJKLMNOÓPQRSTUÚVWXYÝZÞÆÖaábcdðeéfghiíjklmnoópqrstuúvwxyýzþæö!\'(),-.:;? '
 # Default hyperparameters:
-hparams = tf.contrib.training.HParams(
+hparams = HParams(
   # Comma-separated list of cleaners to run on text prior to training and eval. For non-English
   # text, you may want to use "basic_cleaners" or "transliteration_cleaners" See TRAINING_DATA.md.
   cleaners='basic_cleaners',

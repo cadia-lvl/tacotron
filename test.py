@@ -30,4 +30,6 @@ def main():
     with tf.variable_scope('model') as scope:
         model = Tacotron(hparams)
         # stats = add_stats(model)
-    model.train(log_dir,args)
+        model.train(log_dir,args)
+
+main()

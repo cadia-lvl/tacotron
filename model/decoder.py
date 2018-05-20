@@ -36,3 +36,5 @@ class Decoder:
         (decoder_outputs, _), final_decoder_state, _ = dynamic_decode(
             BasicDecoder(output_cell, self._helper, decoder_init_state),
             maximum_iterations=self._hparams.max_iters)                                         # [N, T_out/r, M*r]
+        
+        return decoder_outputs, final_decoder_state

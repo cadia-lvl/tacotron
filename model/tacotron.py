@@ -137,7 +137,7 @@ class Tacotron:
                 else:
                 '''
                 # TODO : add this
-                #log.log('Starting new training run at commit: %s' % 0, slack=True)
+                self.log('Starting new training run at commit: %s' % 0, slack=True)
 
                 feeder.start_in_session(sess)
 
@@ -148,7 +148,7 @@ class Tacotron:
                     loss_window.append(loss)
                     message = 'Step %-7d [%.03f sec/step, loss=%.05f, avg_loss=%.05f]' % (
                     step, time_window.average, loss, loss_window.average)
-                    #log.log(message, slack=(step % args.checkpoint_interval == 0))
+                    self.log.log(message, slack=(step % args.checkpoint_interval == 0))
 
             except Exception as e:
                 #log.log('Exiting due to exception: %s' % e, slack=True)
