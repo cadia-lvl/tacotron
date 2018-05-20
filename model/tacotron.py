@@ -69,7 +69,7 @@ class Tacotron:
             self.loss = self.mel_loss + self.linear_loss
 
 
-    def add_optimizer(self, global_step):
+    def add_optimizer(self):
         '''
             Adds optimizer. Sets "gradients" and "optimize" fields. 
             add_loss must have been called.
@@ -92,7 +92,7 @@ class Tacotron:
         # https://github.com/tensorflow/tensorflow/issues/1122
         with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
             self.optimize = optimizer.apply_gradients(zip(clipped_gradients, variables),
-            global_step=global_step)
+            global_step=self.global_step)
 
     def train(self, log_dir, args):
         checkpoint_path = os.path.join(log_dir, 'model.ckpt')
@@ -102,13 +102,69 @@ class Tacotron:
         coord = tf.train.Coordinator()
         with tf.variable_scope('datafeeder') as scope:
             feeder = Datafeeder(coord,input_path)
+            step = 0
+            time_window = ValueWindow(100)
+            loss_window = ValueWindow(100)
+            saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=2)
 
-        
+            self.global_step = tf.Variable(0, name='global_step', trainable=False)
+
+            # Train!
+            with tf.Session() as sess:
+                try:
+                    summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
+                    sess.run(tf.global_variables_initializer())
+
+                    if args.restore_step:
+                        # Restore from a checkpoint if the user requested it.
+                        restore_path = '%s-%d' % (checkpoint_path, args.restore_step)
+                        saver.restore(sess, restore_path)
+                        log('Resuming from checkpoint: %s at commit: %s' % (restore_path, commit), slack=True)
+                    else:
+                        log('Starting new training run at commit: %s' % commit, slack=True)
+
+                    feeder.start_in_session(sess)
+
+                    while not coord.should_stop():
+                        start_time = time.time()
+                        step, loss, opt = sess.run([global_step, model.loss, model.optimize])
+                        time_window.append(time.time() - start_time)
+                        loss_window.append(loss)
+                        message = 'Step %-7d [%.03f sec/step, loss=%.05f, avg_loss=%.05f]' % (
+                        step, time_window.average, loss, loss_window.average)
+                        log(message, slack=(step % args.checkpoint_interval == 0))
 
 
 
 def _learning_rate_decay(init_lr, global_step):
-  # Noam scheme from tensor2tensor:
-  warmup_steps = 4000.0
-  step = tf.cast(global_step + 1, dtype=tf.float32)
-  return init_lr * warmup_steps**0.5 * tf.minimum(step * warmup_steps**-1.5, step**-0.5)
+    # Noam scheme from tensor2tensor:
+    warmup_steps = 4000.0
+    step = tf.cast(global_step + 1, dtype=tf.float32)
+    return init_lr * warmup_steps**0.5 * tf.minimum(step * warmup_steps**-1.5, step**-0.5)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron'))
+    parser.add_argument('--input', default='training/train.txt')
+    parser.add_argument('--model', default='tacotron')
+    parser.add_argument('--name', help='Name of the run. Used for logging. Defaults to model name.')
+    parser.add_argument('--hparams', default='',
+        help='Hyperparameter overrides as a comma-separated list of name=value pairs')
+    parser.add_argument('--restore_step', type=int, help='Global step to restore from checkpoint.')
+    parser.add_argument('--summary_interval', type=int, default=100,
+        help='Steps between running summary ops.')
+    parser.add_argument('--checkpoint_interval', type=int, default=1000,
+        help='Steps between writing checkpoints.')
+    parser.add_argument('--slack_url', help='Slack webhook URL to get periodic reports.')
+    parser.add_argument('--tf_log_level', type=int, default=1, help='Tensorflow C++ log level.')
+    parser.add_argument('--git', action='store_true', help='If set, verify that the client is clean.')
+    args = parser.parse_args()
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(args.tf_log_level)
+    run_name = args.name or args.model
+    log_dir = os.path.join(args.base_dir, 'logs-%s' % run_name)
+    os.makedirs(log_dir, exist_ok=True)
+    infolog.init(os.path.join(log_dir, 'train.log'), run_name, args.slack_url)
+    hparams.parse(args.hparams)
+    train(log_dir, args)
+
+
