@@ -1,50 +1,33 @@
 import argparse
 import os
 import tensorflow as tf
-from data.data_feed import SimpleDataFeeder
 from datetime import datetime
-from .hparams import hparams
-
-def test_feeder(in_dir):
-    feeder = SimpleDataFeeder(in_dir)
-    feeder.get_next_superbatch()
-
-def embed_batch(batch,alph_length):
-    '''
-    param:
-        batch: a list of tuples where the first element of the tuple is a list of one-hot-id's for a sentence
-        alph_length: the number of letters in the current alphabet (should be changed in future)
-
-    return: [batch_size, padded_sentence_length, embed_depth] tensor representing the embedded sentences in the batch
-    '''
-    one_hots = [l[0] for l in batches]
-    batch_tensor = tf.convert_to_tensor(np.array(one_hots),dtype=int32)
-    embedding_table = tf.get_variable('embed_table',shape=(alph_length,hparams.embed_depth), \
-                                      dtype=float32,intializer=tf.truncated_normal_initializer(stddev=0.5))
-    embedded_inputs = tf.nn.embedding_lookup(embedding_table,batch_tensor)
-
-def embed_superbatch(superbatch,alph_length):
-    '''
-    param:
-        superbatch: a list of batches
-        alph_length: the number of letters in the current alphabet (should be changed in future)
-
-    return: list of embedded batches
-    '''
-    return [embed_batch(batch,alph_length) for batch in superbatch]
-
-
+from hparams import hparams
+from model.tacotron import Tacotron
 
 def main():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron_data'))
-  parser.add_argument('--input', default='training_demo')
-  parser.add_argument('--name', default='tacotron_simple')
-  args = parser.parse_args()
-  run_name = args.name or args.model
-  log_dir = os.path.join(args.base_dir, 'logs-%s' % run_name)
-  os.makedirs(log_dir, exist_ok=True)
-  test_feeder(os.path.join(args.base_dir, args.input))
-
-if __name__ == '__main__':
-  main()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron'))
+    parser.add_argument('--input', default='training/train.txt')
+    parser.add_argument('--model', default='tacotron')
+    parser.add_argument('--name', help='Name of the run. Used for logging. Defaults to model name.')
+    parser.add_argument('--hparams', default='',
+        help='Hyperparameter overrides as a comma-separated list of name=value pairs')
+    parser.add_argument('--restore_step', type=int, help='Global step to restore from checkpoint.')
+    parser.add_argument('--summary_interval', type=int, default=100,
+        help='Steps between running summary ops.')
+    parser.add_argument('--checkpoint_interval', type=int, default=1000,
+        help='Steps between writing checkpoints.')
+    parser.add_argument('--slack_url', help='Slack webhook URL to get periodic reports.')
+    parser.add_argument('--tf_log_level', type=int, default=1, help='Tensorflow C++ log level.')
+    parser.add_argument('--git', action='store_true', help='If set, verify that the client is clean.')
+    args = parser.parse_args()
+    os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(args.tf_log_level)
+    run_name = args.name or args.model
+    log_dir = os.path.join(args.base_dir, 'logs-%s' % run_name)
+    os.makedirs(log_dir, exist_ok=True)
+    hparams.parse(args.hparams)
+    with tf.variable_scope('model') as scope:
+        model = Tacotron(hparams)
+        # stats = add_stats(model)
+    model.train(log_dir,args)

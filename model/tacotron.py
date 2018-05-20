@@ -7,13 +7,15 @@ import tensorflow as tf
 
 from tensorflow.contrib.rnn import GRUCell, MultiRNNCell,OutputProjectionWrapper, ResidualWrapper
 from tensorflow.contrib.seq2seq import AttentionWrapper, BahdanauAttention, BasicDecoder
-from helpers import TestingHelper, TrainingHelper
-from hparams import hparams
+from model.helpers import TestingHelper, TrainingHelper
 from model import modules
 from model.encoder import Encoder
 from model.decoder import Decoder
 
-from data.data_feeder import Datafeeder
+from hparams import hparams
+
+
+from data.data_feed import DataFeeder
 from tools import audio, logger, ValueWindow
 
 class Tacotron:
@@ -105,7 +107,7 @@ class Tacotron:
         # Coordinator and Datafeeder
         coord = tf.train.Coordinator()
         with tf.variable_scope('datafeeder') as scope:
-            feeder = Datafeeder(coord,input_path)
+            feeder = DataFeeder(coord,input_path)
 
         with tf.variable_scope('model') as scope:
             self.initialize(feeder.current_batch)
@@ -150,38 +152,9 @@ class Tacotron:
                 coord.request_stop(e)
 
 
-
 def _learning_rate_decay(init_lr, global_step):
     # Noam scheme from tensor2tensor:
     warmup_steps = 4000.0
     step = tf.cast(global_step + 1, dtype=tf.float32)
     return init_lr * warmup_steps**0.5 * tf.minimum(step * warmup_steps**-1.5, step**-0.5)
-
-def main():
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron'))
-    parser.add_argument('--input', default='training/train.txt')
-    parser.add_argument('--model', default='tacotron')
-    parser.add_argument('--name', help='Name of the run. Used for logging. Defaults to model name.')
-    parser.add_argument('--hparams', default='',
-        help='Hyperparameter overrides as a comma-separated list of name=value pairs')
-    parser.add_argument('--restore_step', type=int, help='Global step to restore from checkpoint.')
-    parser.add_argument('--summary_interval', type=int, default=100,
-        help='Steps between running summary ops.')
-    parser.add_argument('--checkpoint_interval', type=int, default=1000,
-        help='Steps between writing checkpoints.')
-    parser.add_argument('--slack_url', help='Slack webhook URL to get periodic reports.')
-    parser.add_argument('--tf_log_level', type=int, default=1, help='Tensorflow C++ log level.')
-    parser.add_argument('--git', action='store_true', help='If set, verify that the client is clean.')
-    args = parser.parse_args()
-    os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(args.tf_log_level)
-    run_name = args.name or args.model
-    log_dir = os.path.join(args.base_dir, 'logs-%s' % run_name)
-    os.makedirs(log_dir, exist_ok=True)
-    hparams.parse(args.hparams)
-    with tf.variable_scope('model') as scope:
-        model = Tacotron(hparams)
-        # stats = add_stats(model)
-    self.train(log_dir,args)
-
 

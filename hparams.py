@@ -1,7 +1,9 @@
 
 import tensorflow as tf
 
-
+pad = '_'
+eos = '~'
+chars = 'AÁBCDÐEÉFGHIÍJKLMNOÓPQRSTUÚVWXYÝZÞÆÖaábcdðeéfghiíjklmnoópqrstuúvwxyýzþæö!\'(),-.:;? '
 # Default hyperparameters:
 hparams = tf.contrib.training.HParams(
   # Comma-separated list of cleaners to run on text prior to training and eval. For non-English
@@ -58,8 +60,8 @@ hparams = tf.contrib.training.HParams(
     power=1.5,              # Power to raise magnitudes to prior to Griffin-Lim
 
     # Alphabet
-    _pad        = '_'
-    _eos        = '~'
-    _characters = 'AÁBCDÐEÉFGHIÍJKLMNOÓPQRSTUÚVWXYÝZÞÆÖaábcdðeéfghiíjklmnoópqrstuúvwxyýzþæö!\'(),-.:;? '
-    symbols = [_pad, _eos] + list(_characters)
+    _pad        = pad,
+    _eos        = eos,
+    _characters = chars,
+    symbols = [pad, eos] + list(chars)
 )

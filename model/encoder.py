@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.contrib.rnn import GRUCell
 
 from hparams import hparams
-from modules import cbhg, prenet
+from model.modules import cbhg, prenet
 
 
 class Encoder:
