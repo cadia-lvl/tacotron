@@ -1,7 +1,9 @@
 import tensorflow as tf
 from tensorflow.contrib.rnn import GRUCell
+
 from hparams import hparams
-from modules import prenet, cbhg
+from modules import cbhg, prenet
+
 
 class Encoder:
     def __init__(self, is_training=False):
