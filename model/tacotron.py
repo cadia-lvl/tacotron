@@ -8,7 +8,7 @@ from .data.data_feeder import Datafeeder
 
 class Tacotron:
     def __init__(self, hparams=hp):
-        self.hparams = hparams
+        self._hparams = hparams
 
     def initialize(self, batch):
         '''
@@ -29,8 +29,8 @@ class Tacotron:
 
             # Attention
             attention_cell = AttentionWrapper(
-                    DecoderPrenetWrapper(GRUCell(hp.attention_depth), is_training, self.hparams.prenet_depths),
-                    BahdanauAttention(self.hparams.attention_depth, encoder_outputs),
+                    DecoderPrenetWrapper(GRUCell(hp.attention_depth), is_training, self._hparams.prenet_depths),
+                    BahdanauAttention(self._hparams.attention_depth, encoder_outputs),
                     alignment_history=True,
                     output_attention=False) 
 
@@ -41,10 +41,10 @@ class Tacotron:
             decoder = Decoder(is_training=is_training)
             dec_out, final_dec_state = decoder.decode(concat_cell,batch_size)
 
-            mel_outputs = tf.reshape(dec_out, [batch_size,-1, self.hparams.num_mels])
+            mel_outputs = tf.reshape(dec_out, [batch_size,-1, self._hparams.num_mels])
 
             # Post processing CHBG
-            post_out = modules.post_cbhg(mel_outputs, hp.num_mels, training, self.hparams.postnet_depth)
+            post_out = modules.post_cbhg(mel_outputs, hp.num_mels, training, self._hparams.postnet_depth)
             linear_out = tf.layers.dense(post_out, hp.num_freq)
 
             # Alignments
@@ -79,11 +79,11 @@ class Tacotron:
                 step in training
         '''
         with tf.variable_scope('optimizer') as scope:
-        if self.hparams.decay_learning_rate:
-            self.learning_rate = _learning_rate_decay(self.hparams.initial_learning_rate, global_step)
+        if self._hparams.decay_learning_rate:
+            self.learning_rate = _learning_rate_decay(self._hparams.initial_learning_rate, global_step)
         else:
-            self.learning_rate = tf.convert_to_tensor(self.hparams.initial_learning_rate)
-        optimizer = tf.train.AdamOptimizer(self.learning_rate, self.hparams.adam_beta1, self.hparams.adam_beta2)
+            self.learning_rate = tf.convert_to_tensor(self._hparams.initial_learning_rate)
+        optimizer = tf.train.AdamOptimizer(self.learning_rate, self.hparams.adam_beta1, self._hparams.adam_beta2)
         gradients, variables = zip(*optimizer.compute_gradients(self.loss))
         self.gradients = gradients
         clipped_gradients, _ = tf.clip_by_global_norm(gradients, 1.0)
