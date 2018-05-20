@@ -19,14 +19,29 @@ hparams = tf.contrib.training.HParams(
     min_level_db=-100,
     ref_level_db=20,
 
+
     # Model:
+    embedded_depth= 256,
     outputs_per_step=5,
-    embed_depth=256,
+    # -- encoder cbhg
     prenet_depths=[256, 128],
-    encoder_depth=256,
+    encoder_K = 16,
+    encoder_bank_num_filters = 128,
+    encoder_pooling_stride = 1,
+    encoder_pooling_width = 2,
+    encoder_proj_num_filters = [128, 128],
+    encoder_proj_filter_width = 3,
+    encoder_num_highway_layers = 4,
+    encoder_highway_depth = 128,
+    encoder_gru_num_cells = 128
+    # -- decoder #TODO
+    
     postnet_depth=256,
     attention_depth=256,
     decoder_depth=256,
+
+    # More model related:
+    pad_value = 0,
 
     # Training:
     batch_size=32,

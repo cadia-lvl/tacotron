@@ -6,6 +6,7 @@ from text.text_tools import text_to_onehot
 from hparams import hparams
 import threading
 import tensorflow as tf
+from batch import Batch
 
 
 class DataFeeder(threading.Thread):
@@ -35,7 +36,8 @@ class DataFeeder(threading.Thread):
             tf.placeholder(tf.float32, [None, None, hparams.num_freq], 'linear_targets')
         ]
 
-        # Create queue of capacity 8 for buffering data:
+        # Create queue of capacity 8 for buffering data which
+        # will buffer 8 superbatches onto the FIFO queue
         queue = tf.FIFOQueue(8, [tf.int32, tf.int32, tf.float32, tf.float32], name='input_queue')
         self._enqueue_op = queue.enqueue(self._placeholders)
         self.inputs, self.input_lengths, self.mel_targets, self.linear_targets = queue.dequeue()
@@ -43,6 +45,11 @@ class DataFeeder(threading.Thread):
         self.input_lengths.set_shape(self._placeholders[1].shape)
         self.mel_targets.set_shape(self._placeholders[2].shape)
         self.linear_targets.set_shape(self._placeholders[3].shape)
+
+
+    def start_in_session(self, session):
+        self._session = session
+        self.start()
 
 
     def _enqueue_next_superbatch(self):
@@ -57,7 +64,7 @@ class DataFeeder(threading.Thread):
         batches = [superbatch[i:i+self.batch_size] for i in range(0, len(superbatch), self.batch_size)]
         random.shuffle(batches)
         for batch in batches:
-            feed_dict = dict(zip(self._placeholders, _prepare_batch(batch)))
+            feed_dict = dict(zip(self._placeholders, batch))
             self._session.run(self._enqueue_op, feed_dict=feed_dict)
 
 
@@ -110,7 +117,8 @@ class SimpleDataFeeder:
         # sort the samples in the superbatch on length w.r.t. time
         superbatch.sort(key=lambda x: x[-1])
         # now bucket the batches in that order to improve efficiency
-        batches = [self._prepare_batch(superbatch[i:i+self.batch_size]) for i in range(0, len(superbatch), self.batch_size)]
+        batches = [Batch(superbatch[i:i+self.batch_size])
+            for i in range(0, len(superbatch), self.batch_size)]
         random.shuffle(batches)
         return batches
 
@@ -141,16 +149,6 @@ class SimpleDataFeeder:
             random.shuffle(self._metadata)
         else:   
             self._cursor += 1
-
-
-    def _prepare_batch(self, batch):
-        random.shuffle(batch)
-        inputs = _prepare_inputs([x[0] for x in batch])
-
-    def _prepare_input(self, input):
-        max_len = max([len(x) for x in input])
-        return np.stack([_pad_input(x, max_len) for x in input])
-
 
 def load_metadata(path):
     '''

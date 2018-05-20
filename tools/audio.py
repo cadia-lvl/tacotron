@@ -18,7 +18,8 @@ def spectrogram(y):
             
         Output
         A normalized linear-scale spectrogram. A spectrogram is 
-        a 3d structure (Time (ms), Frequency (Hz), Volume (dB))
+        a 2d structure ([Time (ms), Frequency (Hz)] where values
+        are  Volume (dB))
         TODO Thresholding at ref_level_db is never discussed in
         the tacotron paper
     '''
