@@ -2,19 +2,20 @@ from urllib.request import Request, urlopen
 import json
 import atexit
 from datetime import datetime
+import os 
 
 class TrainingLogger:
     '''
         Keeps a log for training runs
-        * output_file: The path to the file to which 
+        * output_path: The path to the folder to which 
         the log will be written
         * slack_url: An optional webhook string for sending
         logs to slack in real time
      '''
-    def __init__(self, output_file, slack_url=None):
-        self._file = open(output_file, 'a')
+    def __init__(self, output_path, slack_url=None):
         self._slack_url = slack_url
         self._date_format = '%d-%-m-%Y %H:%M:%S'
+        self._file = open(os.path.join(output_path, datetime.now().strftime(self._date_format)+'.log'), 'a')
         atexit.register(self._close)
         self.line()
         self.log('Starting a training run')
@@ -30,12 +31,12 @@ class TrainingLogger:
             msg: A string
             slack: A boolean
         '''
+        print(msg)
         date = datetime.now().strftime(self._date_format)
         if title:
-            logged_msg = '[%s]: %s \n' % (date, msg) 
+            logged_msg = '[%s]: %s\n' % (date, msg) 
         else:
-            logged_msg = '%s \n' % msg             
-        print(logged_msg)
+            logged_msg = '%s\n' % msg             
         self._file.write(logged_msg)
         if slack:
             self._slack_msg(date, msg)
@@ -66,6 +67,6 @@ class TrainingLogger:
             the opened log file
         '''
         self.line()
-        self.log("Training is over, goodbye.")
+        self.log("Training is over, goodbye.", slack=True)
         self.line()
         self._file.close()

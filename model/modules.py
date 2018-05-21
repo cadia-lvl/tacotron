@@ -44,6 +44,7 @@ def cbhg(inputs, input_lengths, training, scope, **kwargs):
             6) Finally, a bi-directional GRU RNN is stacked on top to extract sequential features from
                 forward and backward context.
 
+        TODO: Update documentation here about kwargs
         param:
             inputs: tensors of the (possibly modified) inputs
             input_lengths: original (pre-padding) length of the sentences
@@ -75,20 +76,22 @@ def cbhg(inputs, input_lengths, training, scope, **kwargs):
         proj2_out = convolute(proj1_out, kwargs.get('proj_filter_width'),
             kwargs.get('proj_num_filters')[1], None, training, 'proj_2')
 
-
         # combine the output with the original input in this residual connection
         highway_in = proj2_out + inputs
 
+        # TODO: what the duck is this? 
+        if highway_in.shape[2] != kwargs.get('highway_depth'):
+            highway_in = tf.layers.dense(highway_in, kwargs.get('highway_depth'))
+
         # HighwayNet
-        #TODO : replace with a hparam
         for i in range(kwargs.get('num_highway_layers')):
             highway_in = highwaynet(highway_in, 'highway_{}'.format(i+1), kwargs.get('highway_depth'))
         rnn_in = highway_in
 
         # Bidirectional RNN
         outputs, states = tf.nn.bidirectional_dynamic_rnn(
-            GRUCell(kwargs.get('highway_depth')),
-            GRUCell(kwargs.get('highway_depth')),
+            GRUCell(kwargs.get('gru_num_cells')),
+            GRUCell(kwargs.get('gru_num_cells')),
             rnn_in,
             sequence_length=input_lengths,
             dtype=tf.float32)
@@ -135,17 +138,3 @@ def convolute(inputs, K, channels, activation, training, scope):
         conv_out = tf.layers.conv1d(inputs, filters=channels, kernel_size=K,
             activation=activation, padding='same')
     return tf.layers.batch_normalization(conv_out,training=training)
-
-def post_cbhg(inputs, input_dim, training, depth):
-    '''
-    param:
-        inputs: input tensors
-        input_dim: size of output
-        training: tf is training
-        depth: ??
-
-    return: return from cbhg
-    '''
-    #TODO add K to hparam
-    return cbhg(inputs,None,training,scope='post_cbhg', K=8, proj_channels=[256,input_dim],depth=depth)
-

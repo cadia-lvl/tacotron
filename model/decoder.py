@@ -52,7 +52,7 @@ class Decoder:
             'highway_depth': self._hparams.get('decoder_highway_depth'),
             'gru_num_cells': self._hparams.get('decoder_gru_num_cells')
         }
-        post_out = cbhg(mel_outputs, self._hparams.get('num_mels'), self._is_training, 'post_cbhg', **kwargs)
+        post_out = cbhg(mel_outputs, None, self._is_training, 'post_cbhg', **kwargs)
         lin_outputs = tf.layers.dense(post_out, self._hparams.get('num_freq'))
 
         return mel_outputs, lin_outputs, final_decoder_state

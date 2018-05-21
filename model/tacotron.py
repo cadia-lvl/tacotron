@@ -11,6 +11,8 @@ from model.helpers import TestingHelper, TrainingHelper
 from model import modules
 from model.encoder import Encoder
 from model.decoder import Decoder
+import tools.audio
+from text.text_tools import onehot_to_text
 
 from hparams import hparams
 
@@ -54,7 +56,24 @@ class Tacotron:
             self.mel_outputs = mel_outputs
             self.linear_outputs = lin_outputs
             self.alignments = alignments
+            self.global_step = tf.Variable(0, name='global_step', trainable=False)
 
+    def add_stats(self):
+        with tf.variable_scope('stats') as scope:
+            tf.summary.histogram('linear_outputs', self.linear_outputs)
+            tf.summary.histogram('linear_targets', self.linear_targets)
+            tf.summary.histogram('mel_outputs', self.mel_outputs)
+            tf.summary.histogram('mel_targets', self.mel_targets)
+            tf.summary.scalar('loss_mel', self.mel_loss)
+            tf.summary.scalar('loss_linear', self.linear_loss)
+            tf.summary.scalar('learning_rate', self.learning_rate)
+            tf.summary.scalar('loss', self.loss)
+            gradient_norms = [tf.norm(grad) for grad in self.gradients]
+            tf.summary.histogram('gradient_norm', gradient_norms)
+            tf.summary.scalar('max_gradient_norm', tf.reduce_max(gradient_norms))
+            return tf.summary.merge_all()
+    
+    
     def add_loss(self):
         '''
             Adds loss to the model. Sets "loss" field. initialize 
@@ -98,24 +117,23 @@ class Tacotron:
         checkpoint_path = os.path.join(log_dir, 'model.ckpt')
         input_path = os.path.join(args.base_dir, args.input)
         #TODO: Fix this log path issue
-        self.log = logger.TrainingLogger(os.path.join(log_dir,'new_log.log'))
+        self._logger = logger.TrainingLogger(log_dir, slack_url=args.slack_url)
 
         # Coordinator and Datafeeder
         coord = tf.train.Coordinator()
         with tf.variable_scope('datafeeder') as scope:
-            feeder = DataFeeder(coord,input_path)
+            feeder = DataFeeder(coord,input_path, self._logger)
 
         with tf.variable_scope('model') as scope:
             self.initialize(feeder.current_batch)
             self.add_loss()
             self.add_optimizer()
+            stats = self.add_stats()
 
         step = 0
         time_window = ValueWindow(100)
         loss_window = ValueWindow(100)
         saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=2)
-
-        self.global_step = tf.Variable(0, name='global_step', trainable=False)
 
         # Train!
         with tf.Session() as sess:
@@ -123,17 +141,13 @@ class Tacotron:
                 summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
                 sess.run(tf.global_variables_initializer())
 
-                # TODO: implement this stuff
-                '''
                 if args.restore_step:
                     # Restore from a checkpoint if the user requested it.
                     restore_path = '%s-%d' % (checkpoint_path, args.restore_step)
                     saver.restore(sess, restore_path)
-                    log.log('Resuming from checkpoint: %s at commit: %s' % (restore_path, commit), slack=True)
+                    self._logger.log('Resuming from checkpoint: %s' % restore_path, slack=True)
                 else:
-                '''
-                # TODO : add this
-                self.log.log('Starting new training run at commit: %s' % 0, slack=True)
+                    self._logger.log('Starting new training run', slack=True)
 
                 feeder.start_in_session(sess)
 
@@ -144,7 +158,23 @@ class Tacotron:
                     loss_window.append(loss)
                     message = 'Step %-7d [%.03f sec/step, loss=%.05f, avg_loss=%.05f]' % (
                     step, time_window.average, loss, loss_window.average)
-                    self.log.log(message, slack=(step % args.checkpoint_interval == 0))
+                    self._logger.log(message, slack=(step % args.checkpoint_interval == 0))
+
+                    if step % args.summary_interval == 0:
+                        self._logger.log('Writing summary at step: %d' % step, slack=False)
+                        summary_writer.add_summary(sess.run(stats), step)
+
+                    if step % args.checkpoint_interval == 0:
+                        self._logger.log('Saving checkpoint to: %s-%d' % (checkpoint_path, step))
+                        saver.save(sess, checkpoint_path, global_step=step)
+                        self._logger.log('Saving audio and alignment...')
+                        input_seq, spectrogram, alignment = sess.run([
+                            self.inputs[0], self.linear_outputs[0], self.alignments[0]])
+                        waveform = audio.spectrogram_inv(spectrogram.T)
+                        audio.save_wav(waveform, os.path.join(log_dir, 'step-%d-audio.wav' % step))
+                        #plot.plot_alignment(alignment, os.path.join(log_dir, 'step-%d-align.png' % step),
+                        #    info='%s, %s, %s, step=%d, loss=%.5f' % (args.model, commit, time_string(), step, loss))
+                        self._logger.log('Input: %s' % onehot_to_text(input_seq))
 
             except Exception as e:
                 #log.log('Exiting due to exception: %s' % e, slack=True)
