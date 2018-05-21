@@ -14,10 +14,10 @@ def main():
     parser.add_argument('--name', help='Name of the run. Used for logging. Defaults to model name.')
     #parser.add_argument('--hparams', default=hparams,
     #    help='Hyperparameter overrides as a comma-separated list of name=value pairs')
-    parser.add_argument('--restore_step', type=int, help='Global step to restore from checkpoint.', default=110)
-    parser.add_argument('--summary_interval', type=int, default=5,
+    parser.add_argument('--restore_step', type=int, help='Global step to restore from checkpoint.') #, default=110)
+    parser.add_argument('--summary_interval', type=int, default=100,
         help='Steps between running summary ops.')
-    parser.add_argument('--checkpoint_interval', type=int, default=10,
+    parser.add_argument('--checkpoint_interval', type=int, default=1000,
         help='Steps between writing checkpoints.')
     parser.add_argument('--slack_url', help='Slack webhook URL to get periodic reports.', default=slack_url)
     parser.add_argument('--tf_log_level', type=int, default=1, help='Tensorflow C++ log level.')

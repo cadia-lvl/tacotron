@@ -4,6 +4,7 @@ import time
 import traceback
 import numpy as np
 import tensorflow as tf
+from datetime import datetime
 
 from tensorflow.contrib.rnn import GRUCell, MultiRNNCell,OutputProjectionWrapper, ResidualWrapper
 from tensorflow.contrib.seq2seq import AttentionWrapper, BahdanauAttention, BasicDecoder
@@ -18,7 +19,7 @@ from hparams import hparams
 
 
 from data.data_feed import DataFeeder
-from tools import audio, logger, ValueWindow
+from tools import audio, logger, plot, ValueWindow
 
 class Tacotron:
     def __init__(self, hparams=hparams):
@@ -57,6 +58,9 @@ class Tacotron:
             self.linear_outputs = lin_outputs
             self.alignments = alignments
             self.global_step = tf.Variable(0, name='global_step', trainable=False)
+
+    def time_string(self):
+        return datetime.now().strftime('%Y-%m-%d %H:%M')
 
     def add_stats(self):
         with tf.variable_scope('stats') as scope:
@@ -172,8 +176,8 @@ class Tacotron:
                             self.inputs[0], self.linear_outputs[0], self.alignments[0]])
                         waveform = audio.spectrogram_inv(spectrogram.T)
                         audio.save_wav(waveform, os.path.join(log_dir, 'step-%d-audio.wav' % step))
-                        #plot.plot_alignment(alignment, os.path.join(log_dir, 'step-%d-align.png' % step),
-                        #    info='%s, %s, %s, step=%d, loss=%.5f' % (args.model, commit, time_string(), step, loss))
+                        plot.plot_alignment(alignment, os.path.join(log_dir, 'step-%d-align.png' % step),
+                           info='%s, %s, step=%d, loss=%.5f' % (args.model, self.time_string(), step, loss))
                         self._logger.log('Input: %s' % onehot_to_text(input_seq))
 
             except Exception as e:
