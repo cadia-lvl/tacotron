@@ -53,6 +53,34 @@ def preprocess_icelandic(args):
     metadata = data_load.prep_icelandic(in_dir, out_dir)
     write_metadata(metadata, out_dir)
 
+def preprocess_unsilenced_icelandic(args):
+    '''
+        Create the training directory that contains:
+        * Linear scaled spectrograms for all files in the dataset
+        * Mel scaled spectrograms for all files in the dataset
+        * The metadata for this dataset
+
+        Assumes that the dataset is organized in the following way
+        at the base directory path:
+        TTS_icelandic_Google_m/
+            ismData/
+                tokens/
+                    ism_{id#1}.token
+                    ism_{id#2}.token
+                    ...
+                wavs/
+                    ism_{id#1}.wav
+                    ism_{id#2}.wav
+                    ...
+                line_index.tsv
+    '''
+    in_dir = os.path.join(args.base_dir, 'unsilenced_icelandic/ismData')
+    out_dir = os.path.join(args.base_dir, args.output_dir)
+    os.makedirs(out_dir, exist_ok=True)
+    metadata = data_load.prep_icelandic(in_dir, out_dir)
+    write_metadata(metadata, out_dir)
+
+
 
 def write_metadata(metadata, output_dir):
     '''
@@ -79,4 +107,6 @@ if __name__ == '__main__':
         preprocess_ljspeech(args)
     elif args.dataset == 'icelandic':
         preprocess_icelandic(args)
+    elif args.dataset == 'unsilenced_icelandic':
+        preprocess_unsilenced_icelandic(args)
     print('Data has been preprocessed and is now available at ', os.path.join(args.base_dir, args.output_dir))
