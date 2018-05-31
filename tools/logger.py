@@ -1,8 +1,9 @@
-from urllib.request import Request, urlopen
-import json
 import atexit
+import json
+import os
 from datetime import datetime
-import os 
+from urllib.request import Request, urlopen
+
 
 class TrainingLogger:
     '''

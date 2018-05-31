@@ -1,6 +1,5 @@
 pad        = '_'
 eos        = '~'
-# TODO: Questionable to include ';'
 # TODO: If the basic cleaners is applied, the number of characters 
 # in the alphabet dramatically decreases but this is not reflected 
 # in generating the onehot representation.

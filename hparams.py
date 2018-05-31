@@ -7,7 +7,7 @@ chars = 'AÁBCDÐEÉFGHIÍJKLMNOÓPQRSTUÚVWXYÝZÞÆÖaábcdðeéfghiíjklmnoó
 # Default hyperparameters:
 hparams = HParams(
     # Comma-separated list of cleaners to run on text prior to training and eval. For non-English
-    # text, you may want to use "basic_cleaners" or "transliteration_cleaners" See TRAINING_DATA.md.
+    # text, you may want to use "basic_cleaners" or "transliteration_cleaners"
     cleaners='basic_cleaners',
 
     # Audio:

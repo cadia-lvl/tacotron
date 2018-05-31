@@ -8,16 +8,14 @@ from datetime import datetime
 
 from tensorflow.contrib.rnn import GRUCell, MultiRNNCell,OutputProjectionWrapper, ResidualWrapper
 from tensorflow.contrib.seq2seq import AttentionWrapper, BahdanauAttention, BasicDecoder
+
 from model.helpers import TestingHelper, TrainingHelper
 from model import modules
 from model.encoder import Encoder
 from model.decoder import Decoder
 import tools.audio
 from text.text_tools import onehot_to_text
-
 from hparams import hparams
-
-
 from data.data_feed import DataFeeder
 from tools import audio, logger, plot, ValueWindow
 

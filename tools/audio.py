@@ -1,8 +1,10 @@
-from scipy import signal
-from hparams import hparams
 import librosa
 import numpy as np
 import tensorflow as tf
+from scipy import signal
+
+from hparams import hparams
+
 
 def load_wav(path):
     '''

@@ -1,14 +1,17 @@
+import argparse
 import io
 import os
+
 import numpy as np
 import tensorflow as tf
-from hparams import hparams
 from librosa import effects
+
+from data.batch import Batch
+from hparams import hparams
+from model.tacotron import Tacotron
 from text.text_tools import text_to_onehot
 from tools import audio
-from model.tacotron import Tacotron
-from data.batch import Batch
-import argparse
+
 
 class Synthesizer:
   def load(self, checkpoint_path, restore_step, model_name='tacotron'):
@@ -40,15 +43,15 @@ class Synthesizer:
     wav = audio.pre_emphasis_inv(wav)
     wav = wav[:audio.find_endpoint(wav)]
     # TODO: A path can be set here to save the .wav to disk
-    out = io.BytesIO()
+    out = '/home/atli/example.wav'
     audio.save_wav(wav, out)
-    return out.getvalue()
+    # return out.getvalue()
 
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron_data'))
-    parser.add_argument('--model', default='tacotron')
+    parser.add_argument('--model', default='silenced')
 
     args = parser.parse_args()
     run_name = args.model
@@ -58,5 +61,5 @@ if __name__ == '__main__':
     checkpoint_path = os.path.join(log_dir, 'model.ckpt')
     with tf.variable_scope('model') as scope:
         s = Synthesizer()
-        s.load(checkpoint_path, 110)
-        s.synthesize('blablablabla')
+        s.load(checkpoint_path, 186000)
+        s.synthesize('Þetta er alveg ótrúlegt! Ég skil hvað þú segir loksins!')

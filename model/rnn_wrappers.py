@@ -1,6 +1,7 @@
 import numpy as np
 import tensorflow as tf
 from tensorflow.contrib.rnn import RNNCell
+
 from .modules import prenet
 
 

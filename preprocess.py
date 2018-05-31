@@ -1,8 +1,10 @@
-from multiprocessing import cpu_count
-from data import data_load
 import argparse
 import os
+from multiprocessing import cpu_count
+
+from data import data_load
 from hparams import hparams
+
 
 def preprocess_ljspeech(args):
     '''

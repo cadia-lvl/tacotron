@@ -1,6 +1,7 @@
 import tensorflow as tf
 from tensorflow.contrib.rnn import GRUCell, MultiRNNCell, OutputProjectionWrapper, ResidualWrapper
 from tensorflow.contrib.seq2seq import AttentionWrapper, BahdanauAttention, BasicDecoder, dynamic_decode, Helper
+
 from model.rnn_wrappers import ConcatOutputAndAttentionWrapper, DecoderPrenetWrapper
 from hparams import hparams
 from model.modules import cbhg

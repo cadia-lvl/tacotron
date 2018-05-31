@@ -1,8 +1,11 @@
+import random
+
 import numpy as np
+import tensorflow as tf
+
 from hparams import hparams
 from text.characters import chars
-import random
-import tensorflow as tf
+
 
 class Batch:
     def __init__(self, data, prep=True):
