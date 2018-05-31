@@ -113,15 +113,14 @@ class Tacotron:
                 self.optimize = optimizer.apply_gradients(zip(clipped_gradients, variables),
                 global_step=self.global_step)
 
-    def train(self, log_dir, args):
-        checkpoint_path = os.path.join(log_dir, 'model.ckpt')
-        input_path = os.path.join(args.base_dir, args.input)
-        self._logger = logger.TrainingLogger(log_dir, slack_url=args.slack_url)
+    def train(self, args):
+        checkpoint_dir = os.path.join(args.meta_dir, 'model.ckpt')
+        self._logger = logger.TrainingLogger(args.log_dir, slack_url=args.slack_url)
 
         # Coordinator and Datafeeder
         coord = tf.train.Coordinator()
         with tf.variable_scope('datafeeder') as scope:
-            feeder = DataFeeder(coord,input_path, self._logger)
+            feeder = DataFeeder(coord, args.in_dir, self._logger)
 
         with tf.variable_scope('model') as scope:
             self.initialize(feeder.current_batch)
@@ -134,15 +133,16 @@ class Tacotron:
         loss_window = ValueWindow(100)
         saver = tf.train.Saver(max_to_keep=5, keep_checkpoint_every_n_hours=2)
 
-        # Train!
+        # Run training
         with tf.Session() as sess:
             try:
-                summary_writer = tf.summary.FileWriter(log_dir, sess.graph)
+                # creates an event file in the log directory for this model
+                summary_writer = tf.summary.FileWriter(args.meta_dir, sess.graph)
                 sess.run(tf.global_variables_initializer())
 
                 if args.restore_step:
                     # Restore from a checkpoint if the user requested it.
-                    restore_path = '%s-%d' % (checkpoint_path, args.restore_step)
+                    restore_path = '%s-%d' % (checkpoint_dir, args.restore_step)
                     saver.restore(sess, restore_path)
                     self._logger.log('Resuming from checkpoint: %s' % restore_path, slack=True)
                 else:
@@ -164,14 +164,14 @@ class Tacotron:
                         summary_writer.add_summary(sess.run(stats), step)
 
                     if step % args.checkpoint_interval == 0:
-                        self._logger.log('Saving checkpoint to: %s-%d' % (checkpoint_path, step))
-                        saver.save(sess, checkpoint_path, global_step=step)
+                        self._logger.log('Saving checkpoint to: %s-%d' % (checkpoint_dir, step))
+                        saver.save(sess, checkpoint_dir, global_step=step)
                         self._logger.log('Saving audio and alignment...')
                         input_seq, spectrogram, alignment = sess.run([
                             self.inputs[0], self.linear_outputs[0], self.alignments[0]])
                         waveform = audio.spectrogram_inv(spectrogram.T)
-                        audio.save_wav(waveform, os.path.join(log_dir, 'step-%d-audio.wav' % step))
-                        plot.plot_alignment(alignment, os.path.join(log_dir, 'step-%d-align.png' % step),
+                        audio.save_wav(waveform, os.path.join(args.sample_dir, 'step-%d-audio.wav' % step))
+                        plot.plot_alignment(alignment, os.path.join(args.sample_dir, 'step-%d-align.png' % step),
                            info='Tacotron, %s, step=%d, loss=%.5f' % (self.time_string(), step, loss))
                         self._logger.log('Input: %s' % onehot_to_text(input_seq))
 

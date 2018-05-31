@@ -22,8 +22,8 @@ def preprocess_ljspeech(args):
                 ...
             metadata.csv
     '''
-    in_dir = os.path.join(args.base_dir, 'LJSpeech-1.1')
-    out_dir = os.path.join(args.base_dir, args.output_dir)
+    in_dir = args.input_dir
+    out_dir = os.path.join(args.output_dir, 'ljspeech')
     os.makedirs(out_dir, exist_ok=True)
     metadata = data_load.prep_ljspeech(in_dir, out_dir)
     write_metadata(metadata, args.output_dir)
@@ -49,8 +49,8 @@ def preprocess_icelandic(args):
                     ...
                 line_index.tsv
     '''
-    in_dir = os.path.join(args.base_dir, 'TTS_icelandic_Google_m/ismData')
-    out_dir = os.path.join(args.base_dir, args.output_dir)
+    in_dir = os.path.join(args.input_dir, 'ismData')
+    out_dir = os.path.join(args.output_dir, 'icelandic')
     os.makedirs(out_dir, exist_ok=True)
     metadata = data_load.prep_icelandic(in_dir, out_dir)
     write_metadata(metadata, out_dir)
@@ -76,8 +76,8 @@ def preprocess_unsilenced_icelandic(args):
                     ...
                 line_index.tsv
     '''
-    in_dir = os.path.join(args.base_dir, 'unsilenced_icelandic/ismData')
-    out_dir = os.path.join(args.base_dir, args.output_dir)
+    in_dir = os.path.join(args.input_dir, 'ismData')
+    out_dir = os.path.join(args.output_dir, 'icelandic_silenced')
     os.makedirs(out_dir, exist_ok=True)
     metadata = data_load.prep_icelandic(in_dir, out_dir)
     write_metadata(metadata, out_dir)
@@ -102,14 +102,14 @@ def write_metadata(metadata, output_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron_data'))
-    parser.add_argument('--output_dir', default='training')
-    parser.add_argument('--dataset', required=True, choices=['ljspeech', 'icelandic', 'unsilenced_icelandic'])
+    parser.add_argument('--input_dir', required=True, help='Full path to the base directory of the dataset')
+    parser.add_argument('--output_dir', required=True, help='Relative path from /home/<user> to the base output directory')
+    parser.add_argument('--dataset_name', required=True, choices=['ljspeech', 'icelandic', 'unsilenced_icelandic'])
     args = parser.parse_args()
-    if args.dataset == 'ljspeech':
+    if args.dataset_name == 'ljspeech':
         preprocess_ljspeech(args)
-    elif args.dataset == 'icelandic':
+    elif args.dataset_name == 'icelandic':
         preprocess_icelandic(args)
-    elif args.dataset == 'unsilenced_icelandic':
+    elif args.dataset_name == 'unsilenced_icelandic':
         preprocess_unsilenced_icelandic(args)
-    print('Data has been preprocessed and is now available at ', os.path.join(args.base_dir, args.output_dir))
+    print('Data has been preprocessed and is now available at ', os.path.join(args.output_dir, args.dataset_name))
