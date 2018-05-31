@@ -5,7 +5,6 @@ from scipy import signal
 
 from hparams import hparams
 
-
 def load_wav(path):
     '''
         Loads a single waveform file from
@@ -54,8 +53,8 @@ def spectrogram_inv(spect):
 def spectrogram_tensorflow_inv(spect):
   '''Builds computational graph to convert spectrogram to waveform using TensorFlow.
 
-  Unlike inv_spectrogram, this does NOT invert the preemphasis. The caller should call
-  inv_preemphasis on the output after running the graph.
+    Unlike spectrogram_inv, this does NOT invert the preemphasis. The caller should call
+    inv_preemphasis on the output after running the graph.
   '''
   S = _db_to_amp_tensorflow(_denormalize_tensorflow(spect) + hparams.get('ref_level_db'))
   return _griffin_lim_tensorflow(tf.pow(S, hparams.get('power')))

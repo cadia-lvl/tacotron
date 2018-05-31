@@ -109,8 +109,6 @@ class Tacotron:
             self.gradients = gradients
             clipped_gradients, _ = tf.clip_by_global_norm(gradients, 1.0)
 
-            # Add dependency on UPDATE_OPS; otherwise batchnorm won't work correctly. See:
-            # https://github.com/tensorflow/tensorflow/issues/1122
             with tf.control_dependencies(tf.get_collection(tf.GraphKeys.UPDATE_OPS)):
                 self.optimize = optimizer.apply_gradients(zip(clipped_gradients, variables),
                 global_step=self.global_step)
@@ -118,7 +116,6 @@ class Tacotron:
     def train(self, log_dir, args):
         checkpoint_path = os.path.join(log_dir, 'model.ckpt')
         input_path = os.path.join(args.base_dir, args.input)
-        #TODO: Fix this log path issue
         self._logger = logger.TrainingLogger(log_dir, slack_url=args.slack_url)
 
         # Coordinator and Datafeeder
@@ -175,7 +172,7 @@ class Tacotron:
                         waveform = audio.spectrogram_inv(spectrogram.T)
                         audio.save_wav(waveform, os.path.join(log_dir, 'step-%d-audio.wav' % step))
                         plot.plot_alignment(alignment, os.path.join(log_dir, 'step-%d-align.png' % step),
-                           info='%s, %s, step=%d, loss=%.5f' % (args.model, self.time_string(), step, loss))
+                           info='Tacotron, %s, step=%d, loss=%.5f' % (self.time_string(), step, loss))
                         self._logger.log('Input: %s' % onehot_to_text(input_seq))
 
             except Exception as e:

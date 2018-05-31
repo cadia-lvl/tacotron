@@ -99,11 +99,12 @@ def write_metadata(metadata, output_dir):
         print('Max input length:  %d' % max(len(m[3]) for m in metadata))
         print('Max output length: %d' % max(m[2] for m in metadata))   
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron_data'))
     parser.add_argument('--output_dir', default='training')
-    parser.add_argument('--dataset', required=True, choices=['ljspeech', 'icelandic'])
+    parser.add_argument('--dataset', required=True, choices=['ljspeech', 'icelandic', 'unsilenced_icelandic'])
     args = parser.parse_args()
     if args.dataset == 'ljspeech':
         preprocess_ljspeech(args)

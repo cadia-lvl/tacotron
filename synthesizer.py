@@ -51,7 +51,7 @@ class Synthesizer:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron_data'))
-    parser.add_argument('--model', default='silenced')
+    parser.add_argument('--name', defa)
 
     args = parser.parse_args()
     run_name = args.model

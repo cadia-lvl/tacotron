@@ -39,7 +39,7 @@ class TrainingLogger:
         else:
             logged_msg = '%s\n' % msg             
         self._file.write(logged_msg)
-        if slack:
+        if slack and self._slack_url is not None:
             self._slack_msg(date, msg)
 
     def _slack_msg(self, title, body):
