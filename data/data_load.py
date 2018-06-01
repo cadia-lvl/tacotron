@@ -86,7 +86,6 @@ def _process_utterance(out_dir, index, wav_path, text, prefix='data'):
     n_frames = spect.shape[1]
     # Get the mel-scaled spectrogram
     melspect = audio.mel_spectrogram(wav).astype(np.float32)
-
     # Write the spectrograms to disk
     spect_filename = prefix+'-spec-%05d.npy' % index
     melspect_filename = prefix+'-mel-%05d.npy' % index

@@ -26,4 +26,6 @@ Currently, to make sure no data is lost, additions have to be made to `preproces
 3. Synthesize
     * We assume that model-data is stored at `/home/<user>/<input_dir>` for `<model_name>`. A `<restore_step>` and `<text>` has to be supplied.
     * To synthesize run `python3 synthesize.py --input_dir=<input_dir> --restore_step=<restore_step> --text=<text>`. This results in the synthesized data being stored at `/home/<user>/<input_dir>/<model_name>/synthesized`
+4. Using Tensorboard
+    * To inspect training information you should now be able to visit tensorboard by running `tensorboard --logdir=<path_to_training_output>/meta`
 
