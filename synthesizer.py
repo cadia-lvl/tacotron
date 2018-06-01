@@ -18,6 +18,7 @@ class Synthesizer:
     print('Constructing model: %s' % model_name)
     inputs = tf.placeholder(tf.int32, [1, None], 'inputs')
     input_lengths = tf.placeholder(tf.int32, [1], 'input_lengths')
+    # create a batch with a single input and no spectrograms
     b = Batch((inputs, input_lengths, None, None), prep=False)
     with tf.variable_scope('model') as scope:
         self.model = Tacotron(hparams=hparams)
