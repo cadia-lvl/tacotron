@@ -29,3 +29,31 @@ Currently, to make sure no data is lost, additions have to be made to `preproces
 4. Using Tensorboard
     * To inspect training information you should now be able to visit tensorboard by running `tensorboard --logdir=<path_to_training_output>/meta`
 
+## Suggested configuration
+The project structure that has been used so far is the following:
+```
+    main_folder/ <- Main project folder
+        datasets/ <- Raw datasets
+            dataset_1/
+            dataset_2/
+            ...
+        output/ <- Contains model output
+            model_1/
+                logs/ <- Log files per training session
+                meta/ <- Checkpoints and events
+                samples/ <- Training-time synth-samples
+                synthesized/ <- Synthesized samples
+                    text/
+                    wavs/
+            model_2/
+                ...
+            ...
+        processed/ <- Contains pre-processed data
+            dataset_1/ 
+            dataset_2/
+```
+If we assume that the project folder is stored at `/home/<user>/Work/taco` with the same structure listed above, then we can perform from scratch:
+1. Preprocess: `python3 preprocess.py --input_dir=/home/<user>/Work/taco/datasets/TTS_icelandic_Google_m --output_dir=/home/<user>/Work/taco/processed --dataset_name=icelandic`
+2. Train: `python3 runner.py --input_dir=Work/taco/processed --dataset_name=icelandic --output_dir=Work/taco/output --model_name=icelandic_model --checkpoint_interval=1000, --summary_interval=10000`
+3. Synthesize: `python3 synthesizer.py --restore_step=10000 --input_dir=Work/taco/output --model_name=icelandic_model --text="Íslenskur texti"`
+4. Open tensorboard: `tensorboard --logdir=/home/<user>/Work/taco/output/icelandic_model/meta`
