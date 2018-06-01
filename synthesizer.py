@@ -50,16 +50,18 @@ class Synthesizer:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--base_dir', default=os.path.expanduser('~/tacotron_data'))
-    parser.add_argument('--name', defa)
-
+    parser.add_argument('--restore_step', help='Select a valid checkpoint to synthesize from', default=0)
+    parser.add_argument('--input_dir', help='relative path from /home/<user> to base training output directory'),
+    parser.add_argument('--model_name', help='Select the name of the model')
+    parser.add_argument('--text', help='Text to be synthesized')
     args = parser.parse_args()
-    run_name = args.model
 
+    in_dir = os.path.expanduser('~/'+os.path.join(args.input_dir, args.model_name))
+    meta_dir = os.path.join(in_dir, 'meta') # Location of model meta and checkpoints
+    log_dir = os.path.join(in_dir, 'logs')
+    checkpoint_dir = os.path.join(meta_dir, 'model.ckpt')
 
-    log_dir = os.path.join(args.base_dir, 'logs-%s' % run_name)
-    checkpoint_path = os.path.join(log_dir, 'model.ckpt')
     with tf.variable_scope('model') as scope:
         s = Synthesizer()
-        s.load(checkpoint_path, 186000)
-        s.synthesize('Þetta er alveg ótrúlegt! Ég skil hvað þú segir loksins!')
+        s.load(checkpoint_dir, int(args.restore_step))
+        s.synthesize(args.text)
