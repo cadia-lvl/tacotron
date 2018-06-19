@@ -63,6 +63,55 @@ def prep_icelandic(in_dir, out_dir):
         index += 1
   return [future.result() for future in tqdm(futures)]
 
+def prep_ivona(in_dir, out_dir, trim_silence=False, outlier_index_path=None):
+	'''
+		Preprocesses the Ivona dataset from a given input path into a given 
+		output directory.
+
+		Input:
+			* out_dir: The directory to write the output into
+			* trim_silence: If true, silence is trimmed from both ends
+			* outlier_index_path: If not none, outliers will not be preprocessed
+				and therefore not used for training
+		Returns:
+			* A list of tuples describing the training examples.
+	'''
+	executor = ProcessPoolExecutor(max_workers=cpu_count())
+	futures = []
+	index = 1
+	outlier_indx = []
+	if outlier_index_path is not None:
+		outlier_indx = load_outlier_indx(outlier_index_path)
+	print(outlier_indx)
+	with open(os.path.join(in_dir, 'line_index.tsv'), encoding='utf-8') as f:
+		for line in f:
+			# Each line has the form "{token fname} \t {audio fname} \t {reader}"
+			[token_fname, audio_fname, reader] = line.strip().split('\t')
+			if len(outlier_indx) > 0 and token_fname in outlier_indx:
+				print(token_fname)
+				outlier_indx.remove(token_fname)
+			else:
+				text = load_text(os.path.join(in_dir, 'ivona_txt', token_fname))
+				wav_path = os.path.join(in_dir, 'Kristjan_export', '%s' % audio_fname)
+				futures.append(executor.submit(partial(_process_utterance, out_dir, 
+					index, wav_path, text, prefix='ivona', trim_silence=trim_silence)))
+				index += 1
+	return [future.result() for future in tqdm(futures)]
+
+def load_text(path):
+	text = ''
+	with open(path, 'r') as f:
+		for line in f:
+			text += line
+	return text
+
+def load_outlier_indx(path):
+	indx = []
+	with open(path, 'r') as f:
+		for line in f:
+			indx.append(line.strip())
+	return indx
+
 def _process_utterance(out_dir, index, wav_path, text, prefix='data'):
     '''
         Generates a linear and a mel spectrogram for the waveform
