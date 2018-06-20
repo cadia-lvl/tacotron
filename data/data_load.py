@@ -87,7 +87,7 @@ def prep_ivona(in_dir, out_dir, trim_silence=False, outlier_index_path=None, ind
 	with open(index_path, encoding='utf-8') as f:
 		for line in f:
 			# Each line has the form "{token fname} \t {audio fname} \t {reader}"
-			[token_fname, audio_fname, reader] = line.strip().split('\t')
+			[token_fname, audio_fname] = line.strip().split('\t')
 			if len(outlier_indx) > 0 and token_fname in outlier_indx:
 				print(token_fname)
 				outlier_indx.remove(token_fname)
@@ -113,34 +113,36 @@ def load_outlier_indx(path):
 			indx.append(line.strip())
 	return indx
 
-def _process_utterance(out_dir, index, wav_path, text, prefix='data'):
-    '''
-        Generates a linear and a mel spectrogram for the waveform
-        file at the given wav_path.
+def _process_utterance(out_dir, index, wav_path, text, prefix='data', trim_silence=False):
+	'''
+		Generates a linear and a mel spectrogram for the waveform
+		file at the given wav_path.
 
-        Input:
-        out_dir: The target directory for the generated spectrograms
-        index: Used for enumerating the generated files
-        wav_path: The path to the waveform file
-        text: The text being spoken
+		Input:
+			* out_dir: The target directory for the generated spectrograms
+			* index: Used for enumerating the generated files
+			* wav_path: The path to the waveform file
+			* text: The text being spoken
 
-        Output:
-        * The filename of the linear spectrogram
-        * The filename of the mel spectrogram
-        * The number of time-frames in the linear spectrogram
-        * The text being spoken
-    '''
-    wav = audio.load_wav(wav_path)
-    # Get the linear-scale spectrogram
-    spect = audio.spectrogram(wav).astype(np.float32)
-    n_frames = spect.shape[1]
-    # Get the mel-scaled spectrogram
-    melspect = audio.mel_spectrogram(wav).astype(np.float32)
-    # Write the spectrograms to disk
-    spect_filename = prefix+'-spec-%05d.npy' % index
-    melspect_filename = prefix+'-mel-%05d.npy' % index
-    np.save(os.path.join(out_dir, spect_filename), spect.T, allow_pickle=False)
-    np.save(os.path.join(out_dir, melspect_filename), melspect.T, allow_pickle=False)
+		Output:
+			* The filename of the linear spectrogram
+			* The filename of the mel spectrogram
+			* The number of time-frames in the linear spectrogram
+			* The text being spoken
+	'''
+	wav = audio.load_wav(wav_path)
+	# Get the linear-scale spectrogram
+	if trim_silence:
+		wav = audio.trim_silence(wav)
+	spect = audio.spectrogram(wav).astype(np.float32)
+	n_frames = spect.shape[1]
+	# Get the mel-scaled spectrogram
+	melspect = audio.mel_spectrogram(wav).astype(np.float32)
+	# Write the spectrograms to disk
+	spect_filename = prefix+'-spec-%05d.npy' % index
+	melspect_filename = prefix+'-mel-%05d.npy' % index
+	np.save(os.path.join(out_dir, spect_filename), spect.T, allow_pickle=False)
+	np.save(os.path.join(out_dir, melspect_filename), melspect.T, allow_pickle=False)
 
-    # Return a tuple describing this training example
-    return (spect_filename, melspect_filename, n_frames, text)
+	# Return a tuple describing this training example
+	return (spect_filename, melspect_filename, n_frames, text)
