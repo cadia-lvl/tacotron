@@ -76,15 +76,14 @@ def prep_ivona(in_dir, out_dir, trim_silence=False, outlier_index_path=None, ind
 		Returns:
 			* A list of tuples describing the training examples.
 	'''
-	executor = ProcessPoolExecutor(max_workers=cpu_count())
-	futures = []
+	executor = ProcessPoolExecutor(max_workers=4)
 	index = 1
+	futures = []
 	outlier_indx = []
 	if outlier_index_path is not None:
 		outlier_indx = load_outlier_indx(outlier_index_path)
 	if index_path is None:
-        index_path = os.path.join(in_dir, 'line_index.tsv')
-    print(outlier_indx)
+		index_path = os.path.join(in_dir, 'line_index.tsv')
 	with open(index_path, encoding='utf-8') as f:
 		for line in f:
 			# Each line has the form "{token fname} \t {audio fname} \t {reader}"
