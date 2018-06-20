@@ -108,7 +108,7 @@ def preprocess_ivona(args):
     out_dir = os.path.join(args.output_dir, 'ivona')
     os.makedirs(out_dir, exist_ok=True)
     metadata = data_load.prep_ivona(args.input_dir, out_dir, trim_silence=args.trim_silence, 
-        outlier_index_path=args.outlier_idx_path)
+        outlier_index_path=args.outlier_idx_path, index_path=args.index_path)
     write_metadata(metadata, out_dir)
 
 
@@ -134,6 +134,7 @@ if __name__ == '__main__':
     parser.add_argument('--output_dir', required=True, help='Relative path from /home/<user> to the base output directory')
     parser.add_argument('--dataset_name', required=True, choices=['ljspeech', 'icelandic', 'unsilenced_icelandic', 'ivona'])
     parser.add_argument('--trim_silence', required=False, default=False)
+    parser.add_argument('--index_path', required=False)
     parser.add_argument('--outlier_idx_path', required=False,  default=None)    
     args = parser.parse_args()
     if args.dataset_name == 'ljspeech':

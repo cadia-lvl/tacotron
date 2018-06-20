@@ -63,7 +63,7 @@ def prep_icelandic(in_dir, out_dir):
         index += 1
   return [future.result() for future in tqdm(futures)]
 
-def prep_ivona(in_dir, out_dir, trim_silence=False, outlier_index_path=None):
+def prep_ivona(in_dir, out_dir, trim_silence=False, outlier_index_path=None, index_path=None):
 	'''
 		Preprocesses the Ivona dataset from a given input path into a given 
 		output directory.
@@ -82,8 +82,10 @@ def prep_ivona(in_dir, out_dir, trim_silence=False, outlier_index_path=None):
 	outlier_indx = []
 	if outlier_index_path is not None:
 		outlier_indx = load_outlier_indx(outlier_index_path)
-	print(outlier_indx)
-	with open(os.path.join(in_dir, 'line_index.tsv'), encoding='utf-8') as f:
+	if index_path is None:
+        index_path = os.path.join(in_dir, 'line_index.tsv')
+    print(outlier_indx)
+	with open(index_path, encoding='utf-8') as f:
 		for line in f:
 			# Each line has the form "{token fname} \t {audio fname} \t {reader}"
 			[token_fname, audio_fname, reader] = line.strip().split('\t')
