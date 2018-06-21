@@ -40,8 +40,8 @@ from model.tacotron import Tacotron
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_dir', help='relative path from /home/<user> to base preprocessed data directory'),
-    parser.add_argument('--output_dir', help='relative path from /home/<user> to the base output directory')
+    parser.add_argument('--input_dir', help='Absolute path to base preprocessed data directory'),
+    parser.add_argument('--output_dir', help='Absolute path to the base output directory')
     parser.add_argument('--dataset_name', help='The given dataset has to exist in the given input directory')
     parser.add_argument('--model_name', 
         help='name of model to be trained on, defaults to main. This is just used for file-keeping.', 
@@ -57,8 +57,8 @@ def main():
     args = parser.parse_args()
     
     os.environ['TF_CPP_MIN_LOG_LEVEL'] = str(args.tf_log_level)
-    args.in_dir = os.path.expanduser('~/'+os.path.join(args.input_dir, args.dataset_name))
-    args.out_dir = os.path.expanduser('~/'+os.path.join(args.output_dir, args.model_name))
+    args.in_dir = os.path.join(args.input_dir, args.dataset_name)
+    args.out_dir = os.path.join(args.output_dir, args.model_name)
     args.log_dir = os.path.join(args.out_dir, 'logs')
     args.meta_dir = os.path.join(args.out_dir, 'meta')
     args.sample_dir = os.path.join(args.out_dir, 'samples')    

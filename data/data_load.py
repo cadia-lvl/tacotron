@@ -89,7 +89,6 @@ def prep_ivona(in_dir, out_dir, trim_silence=False, outlier_index_path=None, ind
 			# Each line has the form "{token fname} \t {audio fname} \t {reader}"
 			[token_fname, audio_fname] = line.strip().split('\t')
 			if len(outlier_indx) > 0 and token_fname in outlier_indx:
-				print(token_fname)
 				outlier_indx.remove(token_fname)
 			else:
 				text = load_text(os.path.join(in_dir, 'ivona_txt', token_fname))
@@ -104,7 +103,7 @@ def load_text(path):
 	with open(path, 'r') as f:
 		for line in f:
 			text += line
-	return text
+	return text.strip()
 
 def load_outlier_indx(path):
 	indx = []

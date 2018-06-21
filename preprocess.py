@@ -130,8 +130,8 @@ def write_metadata(metadata, output_dir):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--input_dir', required=True, help='Full path to the base directory of the dataset')
-    parser.add_argument('--output_dir', required=True, help='Relative path from /home/<user> to the base output directory')
+    parser.add_argument('--input_dir', required=True, help='Absolute path to the base directory of the dataset')
+    parser.add_argument('--output_dir', required=True, help='Absolute path to the base output directory')
     parser.add_argument('--dataset_name', required=True, choices=['ljspeech', 'icelandic', 'unsilenced_icelandic', 'ivona'])
     parser.add_argument('--trim_silence', required=False, default=False)
     parser.add_argument('--index_path', required=False)
