@@ -16,8 +16,8 @@ class TrainingLogger:
     def __init__(self, output_path, slack_url=None):
         self._slack_url = slack_url
         self._date_format = '%d-%-m-%Y %H:%M:%S'
-        self._file = open(os.path.join(output_path, datetime.now().strftime(self._date_format)+'.log'), 'a')
-        atexit.register(self._close)
+        #self._file = open(os.path.join(output_path, datetime.now().strftime(self._date_format)+'.log'), 'a')
+        self._fpath = os.path.join(output_path, datetime.now().strftime(self._date_format)+'.log')
         self.line()
         self.log('Starting a training run')
         self.line()
@@ -37,8 +37,9 @@ class TrainingLogger:
         if title:
             logged_msg = '[%s]: %s\n' % (date, msg) 
         else:
-            logged_msg = '%s\n' % msg             
-        self._file.write(logged_msg)
+            logged_msg = '%s\n' % msg
+        with open(self._fpath, 'a') as logfile:
+            logfile.write(logged_msg)      
         if slack and self._slack_url is not None:
             self._slack_msg(date, msg)
 
@@ -61,13 +62,3 @@ class TrainingLogger:
         '''
         self.log('------------------------------------', 
             title=False, slack=False)
-
-    def _close(self):
-        '''
-            Indicates an end of logging and closes
-            the opened log file
-        '''
-        self.line()
-        self.log("Training is over, goodbye.", slack=True)
-        self.line()
-        self._file.close()
