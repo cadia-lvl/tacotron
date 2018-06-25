@@ -57,3 +57,6 @@ If we assume that the project folder is stored at `/home/<user>/Work/taco` with 
 2. Train: `python3 runner.py --input_dir=Work/taco/processed --dataset_name=icelandic --output_dir=Work/taco/output --model_name=icelandic_model --checkpoint_interval=1000, --summary_interval=10000`
 3. Synthesize: `python3 synthesizer.py --restore_step=10000 --input_dir=Work/taco/output --model_name=icelandic_model --text="Íslenskur texti"`
 4. Open tensorboard: `tensorboard --logdir=/home/<user>/Work/taco/output/icelandic_model/meta`
+
+## Using Ivona
+Training audio samples are limited to `max_iters` * `outputs_per_step` * `frame_shift_ms` ms, which is by default `200 * 5 * 12.5 = 12.5 seconds`. In the case of ivona where the longest audio samples is about 25 seconds, you can simply supply `--hparams="max_iters=400` to double the maximum length of the audio samples.

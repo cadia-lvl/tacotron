@@ -1,0 +1,37 @@
+------------------------------------
+[25-6-2018 17:12:57]: Starting a training run
+------------------------------------
+[25-6-2018 17:12:57]: Loaded metadata for 163 examples (0.30 hours)
+[25-6-2018 17:13:10]: Starting new training run
+[25-6-2018 17:13:14]: Generated 32 batches of size 32 in 4.081 sec
+[25-6-2018 17:13:21]: Step 1       [11.507 sec/step, loss=0.90772, avg_loss=0.90772]
+[25-6-2018 17:13:35]: Step 2       [12.489 sec/step, loss=0.87046, avg_loss=0.88909]
+[25-6-2018 17:13:39]: Step 3       [9.930 sec/step, loss=0.87260, avg_loss=0.88359]
+[25-6-2018 17:13:51]: Step 4       [10.242 sec/step, loss=0.89615, avg_loss=0.88673]
+[25-6-2018 17:13:55]: Step 5       [9.077 sec/step, loss=0.90102, avg_loss=0.88959]
+[25-6-2018 17:13:59]: Step 6       [8.162 sec/step, loss=0.85826, avg_loss=0.88437]
+[25-6-2018 17:14:05]: Step 7       [7.935 sec/step, loss=0.86991, avg_loss=0.88230]
+[25-6-2018 17:14:08]: Step 8       [7.274 sec/step, loss=0.84251, avg_loss=0.87733]
+[25-6-2018 17:14:27]: Step 9       [8.635 sec/step, loss=0.85628, avg_loss=0.87499]
+[25-6-2018 17:14:52]: Step 10      [10.247 sec/step, loss=0.45980, avg_loss=0.83347]
+[25-6-2018 17:14:58]: Step 11      [9.869 sec/step, loss=0.85414, avg_loss=0.83535]
+[25-6-2018 17:15:11]: Step 12      [10.161 sec/step, loss=0.84831, avg_loss=0.83643]
+[25-6-2018 17:15:22]: Step 13      [10.170 sec/step, loss=0.83199, avg_loss=0.83609]
+[25-6-2018 17:15:25]: Step 14      [9.669 sec/step, loss=0.80923, avg_loss=0.83417]
+[25-6-2018 17:15:43]: Step 15      [10.250 sec/step, loss=0.72451, avg_loss=0.82686]
+[25-6-2018 17:15:58]: Step 16      [10.510 sec/step, loss=0.82571, avg_loss=0.82679]
+[25-6-2018 17:16:06]: Step 17      [10.381 sec/step, loss=0.83476, avg_loss=0.82726]
+[25-6-2018 17:16:31]: Step 18      [11.198 sec/step, loss=0.67261, avg_loss=0.81867]
+[25-6-2018 17:16:44]: Step 19      [11.271 sec/step, loss=0.84528, avg_loss=0.82007]
+[25-6-2018 17:16:52]: Step 20      [11.097 sec/step, loss=0.77033, avg_loss=0.81758]
+[25-6-2018 17:17:03]: Step 21      [11.095 sec/step, loss=0.80827, avg_loss=0.81714]
+[25-6-2018 17:17:11]: Step 22      [10.966 sec/step, loss=0.81861, avg_loss=0.81720]
+[25-6-2018 17:17:17]: Step 23      [10.750 sec/step, loss=0.80320, avg_loss=0.81659]
+[25-6-2018 17:17:22]: Generated 32 batches of size 32 in 5.341 sec
+[25-6-2018 17:17:35]: Step 24      [11.051 sec/step, loss=0.83008, avg_loss=0.81716]
+[25-6-2018 17:17:43]: Step 25      [10.937 sec/step, loss=0.82609, avg_loss=0.81751]
+[25-6-2018 17:17:54]: Step 26      [10.959 sec/step, loss=0.81670, avg_loss=0.81748]
+[25-6-2018 17:18:18]: Step 27      [11.408 sec/step, loss=0.77890, avg_loss=0.81605]
+------------------------------------
+[25-6-2018 17:18:31]: Training is over, goodbye.
+------------------------------------

@@ -46,6 +46,8 @@ def main():
     parser.add_argument('--model_name', 
         help='name of model to be trained on, defaults to main. This is just used for file-keeping.', 
         default='main')
+    parser.add_argument('--hparams', default='',
+        help='Hyperparameter overrides as a comma-separated list of name=value pairs')
     parser.add_argument('--restore_step', type=int, help='Global step to restore from checkpoint.')
     parser.add_argument('--summary_interval', type=int, default=100,
         help='Steps between running summary ops.')
@@ -66,7 +68,7 @@ def main():
     os.makedirs(args.log_dir, exist_ok=True)
     os.makedirs(args.meta_dir, exist_ok=True)
     os.makedirs(args.sample_dir, exist_ok=True)
-
+    hparams.parse(args.hparams)
     model = Tacotron(hparams)
     model.train(args)
 

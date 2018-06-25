@@ -22,7 +22,7 @@ from tools import audio, logger, plot, ValueWindow
 class Tacotron:
     def __init__(self, hparams=hparams):
         self._hparams = hparams
-
+        print(self._hparams.max_iters * self._hparams.outputs_per_step * self._hparams.frame_shift_ms)
     def initialize(self, batch):
         '''
         param:
