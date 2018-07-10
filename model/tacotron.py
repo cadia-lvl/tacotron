@@ -22,7 +22,7 @@ from tools import audio, logger, plot, ValueWindow
 class Tacotron:
     def __init__(self, hparams=hparams):
         self._hparams = hparams
-        print(self._hparams.max_iters * self._hparams.outputs_per_step * self._hparams.frame_shift_ms)
+        
     def initialize(self, batch):
         '''
         param:
@@ -47,7 +47,6 @@ class Tacotron:
             decoder = Decoder(helper, is_training=is_training)
             mel_outputs, lin_outputs, final_decoder_state = decoder.decode(encoder_outputs,batch_size)
 
-           
             # Alignments
             alignments = tf.transpose(final_decoder_state[0].alignment_history.stack(), [1,2,0])
 
@@ -176,8 +175,8 @@ class Tacotron:
                         self._logger.log('Input: %s' % onehot_to_text(input_seq))
 
             except Exception as e:
-                #log.log('Exiting due to exception: %s' % e, slack=True)
-                traceback.print_exc()
+                self._logger.log('Exiting due to exception: %s' % e, slack=True)
+                print(traceback.format_exc())
                 coord.request_stop(e)
 
 
