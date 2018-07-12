@@ -14,7 +14,7 @@ def load_wav(path):
 
 def save_wav(wav, path):
   wav *= 32767 / max(0.01, np.max(np.abs(wav)))
-  librosa.output.write_wav(path, wav.astype(np.float16), hparams.get('sample_rate'))
+  librosa.output.write_wav(path, wav.astype(np.int16), hparams.get('sample_rate'))
 
 def trim_silence(audio):
     trimmed, _ = librosa.effects.trim(audio)

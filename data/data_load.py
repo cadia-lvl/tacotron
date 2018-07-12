@@ -88,13 +88,12 @@ def prep_ivona(in_dir, out_dir, trim_silence=False, outlier_index_path=None, ind
 		for line in f:
 			# Each line has the form "{token fname} \t {audio fname} \t {reader}"
 			[token_fname, audio_fname] = line.strip().split('\t')
-			if len(outlier_indx) > 0 and token_fname in outlier_indx:
-				outlier_indx.remove(token_fname)
-			else:
+			# dirty trick to only use set 1
+			if int(token_fname[9]) == 1:
 				text = load_text(os.path.join(in_dir, 'ivona_txt', token_fname))
 				wav_path = os.path.join(in_dir, 'Kristjan_export', '%s' % audio_fname)
 				futures.append(executor.submit(partial(_process_utterance, out_dir, 
-					index, wav_path, text, prefix='ivona', trim_silence=trim_silence)))
+					index, wav_path, text, prefix='ivona', trim_silence=trim_silence, file_id=token_fname)))
 				index += 1
 	return [future.result() for future in tqdm(futures)]
 
@@ -112,7 +111,7 @@ def load_outlier_indx(path):
 			indx.append(line.strip())
 	return indx
 
-def _process_utterance(out_dir, index, wav_path, text, prefix='data', trim_silence=False):
+def _process_utterance(out_dir, index, wav_path, text, prefix='data', trim_silence=False, **kwargs):
 	'''
 		Generates a linear and a mel spectrogram for the waveform
 		file at the given wav_path.
@@ -144,4 +143,4 @@ def _process_utterance(out_dir, index, wav_path, text, prefix='data', trim_silen
 	np.save(os.path.join(out_dir, melspect_filename), melspect.T, allow_pickle=False)
 
 	# Return a tuple describing this training example
-	return (spect_filename, melspect_filename, n_frames, text)
+	return (spect_filename, melspect_filename, n_frames, text) + tuple(kwargs.values())

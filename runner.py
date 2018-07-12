@@ -53,6 +53,7 @@ def main():
         help='Steps between running summary ops.')
     parser.add_argument('--checkpoint_interval', type=int, default=1000,
         help='Steps between writing checkpoints.')
+    parser.add_argument('--msg_interval', type=int, default=100, help='Interval of general training messages')
     # used for broadcasting training updates to slack.
     parser.add_argument('--slack_url', help='Slack webhook URL to get periodic reports.')
     parser.add_argument('--tf_log_level', type=int, default=1, help='Tensorflow C++ log level.')
