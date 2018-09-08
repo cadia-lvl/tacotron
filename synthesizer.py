@@ -65,7 +65,7 @@ if __name__ == '__main__':
     parser.add_argument('--text', help='Text to be synthesized')
     args = parser.parse_args()
 
-    in_dir = os.path.expanduser('~/'+os.path.join(args.input_dir, args.model_name))
+    in_dir = os.path.join(args.input_dir, args.model_name)
     meta_dir = os.path.join(in_dir, 'meta') # Location of model meta and checkpoints
     log_dir = os.path.join(in_dir, 'logs')
     synth_dir = os.path.join(in_dir, 'synthesized')

@@ -88,7 +88,7 @@ class DataFeeder(threading.Thread):
             Output:
             (Onehot text input, mel target, linear target, cost)
         '''
-        lin_target_path, mel_target_path, n_frames, text = self._metadata[self._cursor] 
+        lin_target_path, mel_target_path, n_frames, text = self._metadata[self._cursor][:4] 
         self.increment_cursor()
         lin_target = np.load(os.path.join(self._in_dir, lin_target_path))
         mel_target = np.load(os.path.join(self._in_dir, mel_target_path))
