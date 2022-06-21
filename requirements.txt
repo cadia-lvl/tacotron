@@ -18,7 +18,7 @@ Markdown==2.6.11
 matplotlib==2.2.2
 mccabe==0.6.1
 numba==0.38.0
-numpy==1.14.3
+numpy==1.22.0
 pkg-resources==0.0.0
 protobuf==3.5.2.post1
 pylint==1.8.4
